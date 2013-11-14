@@ -24,49 +24,15 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define INF_ABORT 32700
-
-void abort_constructor(Abort * self) {
-	self->parent = NULL; 
-  self->pollGranularity = 0;
-  self->count = 0;
-  self->index_among_siblings = -1;
-  self->min_aborted_child_index = INF_ABORT;
+void abort_constructor(Abort * self, Abort * parent) {
+  self->parent = parent;
+  self->is_aborted = 0;
 }
 
-void abort_constructor_parent(Abort * self, Abort *p, int ias) {
-	self->parent = p;
-	self->pollGranularity = 0;
-	self->count = 0;
-	self->index_among_siblings = ias;
-	self->min_aborted_child_index = INF_ABORT;
+int is_aborted(Abort * self) {
+  return self->is_aborted || (self->parent && is_aborted(self->parent));
 }
 
-void setGranularity(Abort * self, int newGranularity) {
-	self->pollGranularity = newGranularity;
-}
-
-int stopSpawning(Abort * self) {
-	assert(self->min_aborted_child_index <= INF_ABORT);
-	assert(self->index_among_siblings <= INF_ABORT);
-
-	return self->min_aborted_child_index != INF_ABORT;
-}
-
-int isAborted(Abort * self) {
-	assert(self->min_aborted_child_index <= INF_ABORT);
-	assert(self->index_among_siblings <= INF_ABORT);
-
-	int aborted = (self->parent && self->parent->min_aborted_child_index != INF_ABORT);
-	int ret = aborted || (self->parent && isAborted(self->parent));
-	if (ret) {
-		self->min_aborted_child_index = -1;
-	}
-	return ret;
-}
-
-void do_abort(Abort * self, int child_index) {
-  if (child_index < self->min_aborted_child_index) {
-    self->min_aborted_child_index = child_index;
-  }
+void do_abort(Abort * self) {
+  self->is_aborted = 1;
 }

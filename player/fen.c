@@ -37,10 +37,10 @@ static void fen_error(char *fen, int c_count, char *msg) {
 }
 
 // parse_fen_board
-// Input: 	board representation as a fen string
-//					unpopulated board position struct
-// Output: 	index of where board description ends or 0 if parsing error
-//					(populated) board position struct
+// Input:   board representation as a fen string
+//          unpopulated board position struct
+// Output:   index of where board description ends or 0 if parsing error
+//          (populated) board position struct
 static int parse_fen_board(position_t *p, char *fen) {
   // Invariant: square (f, r) is last square filled.
   // Fill from last rank to first rank, from first file to last file
@@ -329,8 +329,8 @@ static int get_sq_from_str(char *fen, int *c_count, int *sq) {
   return 0;
 }
 
-
-// Set up position
+// Translate a fen string into a board position struct
+//
 int fen_to_pos(position_t *p, char *fen) {
   static  position_t dmy1, dmy2;
 
@@ -351,10 +351,10 @@ int fen_to_pos(position_t *p, char *fen) {
 
 
   if (fen[0] == '\0') {  // Empty FEN => use starting position
-		if (BOARD_WIDTH == 10) 
-			fen = "ss3nw5/3nw6/2nw7/1nw8/nw3nwne4/4SWSE3SE/8SE1/7SE2/6SE3/5SE3NN W";
-		else if (BOARD_WIDTH == 8)
-			fen = "ss2nw4/2nw5/1nw6/nw2nwne3/3SWSE2SE/6SE1/5SE2/4SE2NN W";
+    if (BOARD_WIDTH == 10) 
+      fen = "ss3nw5/3nw6/2nw7/1nw8/nw3nwne4/4SWSE3SE/8SE1/7SE2/6SE3/5SE3NN W";
+    else if (BOARD_WIDTH == 8)
+      fen = "ss2nw4/2nw5/1nw6/nw2nwne3/3SWSE2SE/6SE1/5SE2/4SE2NN W";
   }
 
   int c_count = 0;  // Invariant: fen[c_count] is next char to be read
@@ -478,23 +478,26 @@ int fen_to_pos(position_t *p, char *fen) {
 
 // King orientations
 // This code is duplicated from move_gen.c
-static char *king_ori_to_rep[2][NUM_ORI] = { 	{ "NN", "EE", "SS", "WW" },
-                                      				{ "nn", "ee", "ss", "ww" } };
+static char *king_ori_to_rep[2][NUM_ORI] = {  { "NN", "EE", "SS", "WW" },
+                                              { "nn", "ee", "ss", "ww" } };
 
 // Pawn orientations
-static char *pawn_ori_to_rep[2][NUM_ORI] = {	{ "NW", "NE", "SE", "SW" },
-                                      				{ "nw", "ne", "se", "sw" } };
+static char *pawn_ori_to_rep[2][NUM_ORI] = {  { "NW", "NE", "SE", "SW" },
+                                              { "nw", "ne", "se", "sw" } };
 
-// pos_to_fen
-// Input: 	(populated) position struct
-//					empty string where FEN characters will be written
-// Output: 	null
+// Translate a position struct into a fen string
+// NOTE: When you use the test framework in search.c, you should modify this 
+// function to match your optimized board representation in move_gen.c
+//
+// Input:   (populated) position struct
+//          empty string where FEN characters will be written
+// Output:   null
 int pos_to_fen(position_t *p, char * fen) {
-	int pos = 0;
-	int i;
+  int pos = 0;
+  int i;
 
   for (rnk_t r = BOARD_WIDTH - 1; r >=0 ; --r) {
-		int empty_in_a_row = 0;
+    int empty_in_a_row = 0;
     for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
       square_t sq = square_of(f, r);
 
@@ -506,35 +509,35 @@ int pos_to_fen(position_t *p, char * fen) {
         empty_in_a_row++;
         continue;
       } else {
-				if (empty_in_a_row) fen[pos++] = '0' + empty_in_a_row;
-				empty_in_a_row = 0;
+        if (empty_in_a_row) fen[pos++] = '0' + empty_in_a_row;
+        empty_in_a_row = 0;
 
-		    int ori = ori_of(p->board[sq]);  // orientation
-		    color_t c = color_of(p->board[sq]);
+        int ori = ori_of(p->board[sq]);  // orientation
+        color_t c = color_of(p->board[sq]);
 
-		    if (ptype_of(p->board[sq]) == KING) {					
-		      for (i = 0; i < 2; i++) fen[pos++] = king_ori_to_rep[c][ori][i];
-		      continue;
-		    }
+        if (ptype_of(p->board[sq]) == KING) {          
+          for (i = 0; i < 2; i++) fen[pos++] = king_ori_to_rep[c][ori][i];
+          continue;
+        }
 
-		    if (ptype_of(p->board[sq]) == PAWN) {
-		      for (i = 0; i < 2; i++) fen[pos++] = pawn_ori_to_rep[c][ori][i];
-		      continue;
-		    }
-			}
+        if (ptype_of(p->board[sq]) == PAWN) {
+          for (i = 0; i < 2; i++) fen[pos++] = pawn_ori_to_rep[c][ori][i];
+          continue;
+        }
+      }
     }
-		assert(BOARD_WIDTH <= 10); // for larger boards, we need more general solns
-		if (empty_in_a_row == 10) {
-			fen[pos++] = '1';
-			fen[pos++] = '0';			
-		} else if (empty_in_a_row) 
-			fen[pos++] = '0' + empty_in_a_row;
-		if (r) fen[pos++] = '/';
+    assert(BOARD_WIDTH <= 10); // for larger boards, we need more general solns
+    if (empty_in_a_row == 10) {
+      fen[pos++] = '1';
+      fen[pos++] = '0';      
+    } else if (empty_in_a_row) 
+      fen[pos++] = '0' + empty_in_a_row;
+    if (r) fen[pos++] = '/';
   }
-	fen[pos++] = ' ';
-	fen[pos++] = 'W';
-	fen[pos++] = '\0';
+  fen[pos++] = ' ';
+  fen[pos++] = 'W';
+  fen[pos++] = '\0';
 
-	return pos;
+  return pos;
 }
 

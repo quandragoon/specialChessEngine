@@ -35,14 +35,14 @@ int USE_TT;   // Use the transposition table.
 // the actual record that holds the data for the transposition
 // typedef to be ttRec_t in tt.h
 struct ttRec {
-  uint64_t  key;           //  64 bits
-  move_t    move;          //  32 bits
-  score_t   score;         //  16 bits
-  int       quality:8;     //   8 bits
-  ttBound_t bound:2;       //   2 bits
-  int       age:6;         //   6 bits
-                           //--------
-};                         // 128 bits total
+  uint64_t  key;           
+  move_t    move;          
+  score_t   score;         
+  int       quality;     
+  ttBound_t bound;       
+  int       age;         
+                           
+};
 
 
 // each set is a 4-way set-associative cache and contains 4 records
@@ -84,15 +84,10 @@ void tt_resize_hashtable(int size_in_meg) {
   // total number of sets we could have in the hashtable
   uint64_t num_of_sets = size_in_bytes / sizeof(ttSet_t);
 
-  // round up to nearest power of 2
+  uint64_t pow = 1;
   num_of_sets--;
-  num_of_sets |= num_of_sets >> 1;
-  num_of_sets |= num_of_sets >> 2;
-  num_of_sets |= num_of_sets >> 4;
-  num_of_sets |= num_of_sets >> 8;
-  num_of_sets |= num_of_sets >> 16;
-  num_of_sets |= num_of_sets >> 32;
-  num_of_sets++;
+  while (pow <= num_of_sets) pow *= 2;
+  num_of_sets = pow;
 
   hashtable.num_of_sets = num_of_sets;
   hashtable.mask = num_of_sets - 1;
@@ -190,14 +185,15 @@ ttRec_t *tt_hashtable_get(uint64_t key) {
   }
 
   uint64_t set_index = key & hashtable.mask;
-  ttRec_t *rec = hashtable.tt_set[set_index].records;
+  ttRec_t * rec = hashtable.tt_set[set_index].records;
 
+  ttRec_t * found = NULL;
   for (int i = 0; i < RECORDS_PER_SET; i++, rec++) {
     if (rec->key == key) {  // found the record that we are looking for
-      return rec;
+      found = rec;
     }
   }
-  return NULL;
+  return found;
 }
 
 

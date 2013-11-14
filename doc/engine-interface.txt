@@ -226,7 +226,7 @@ Engine to GUI:
 	* author <x>
 		this must be sent after receiving the "uci" command to
 		identify the engine, e.g. "Don Dailey, Charles E. Leiserson,
-    and the staff of MIT 6.172 Fall 2012"
+    and the staff of MIT 6.172 Fall 2012-2013"
 
 * uciok
 
@@ -423,7 +423,7 @@ FEN notation for Leiserchess
 
 For Leiserchess we will define a simple protocol for defining a board
 position.  For simplicity of parsing we will use 2 character fields
-per square, 100 squares starting from a9 in upper left corner to j0 in
+per square, 64 squares starting from a7 in upper left corner to h0 in
 lower right corner.  Consecutive empty spaces are densified as described 
 below. 
 
@@ -453,9 +453,9 @@ files:
 Starting with the most distant row, each row is encoded as a series of
 tokens where each token is a number, representing consecutive blank
 spaces, or two characters representing a piece. For example, a row
-containing a north-pointing black King on b9 is represented as "1NN8"
+containing a north-pointing black King on b7 is represented as "1NN6"
 indicating a single blank space, a north-facing Black (uppercase)
-King, and 8 more blank spaces.
+King, and 6 more blank spaces.
 
 Each row is separated by a forward slash. After all rows, the player
 to move is indicated by space and the character "W" or "B" indicating
@@ -463,7 +463,7 @@ White or Black.
 
 For example, the fen notation of the default starting position is
 
-ss3nw5/3nw6/2nw7/1nw8/nw3nwne4/4SWSE3SE/8SE1/7SE2/6SE3/5SE3NN W
+ss2nw4/2nw5/1nw6/nw2nwne3/3SWSE2SE/6SE1/5SE2/4SE2NN W
 
 More examples of this notation can be seen by observing the state of a
 game played against the webserver.
@@ -478,7 +478,7 @@ semicolon:
 
 uci
     id name Leiserchess 1038 
-    id author Don Dailey, Charles E. Leiserson, and the staff of MIT 6.172 Fall 2012 
+    id author Don Dailey, Charles E. Leiserson, and the staff of MIT 6.172 Fall 2012-2013 
     option name hattack type spin value 200 default 200 min 0 max 10000
     option name attack type spin value 100 default 100 min 0 max 10000
     option name pmirror type spin value 500 default 500 min 0 max 10000
@@ -492,29 +492,21 @@ isready      ; like a ping command
 position startpos moves j0j1 a5R   ; no response required
 
 go depth 5   ; begin a 5 ply search (but don't execute move on board)
-    info depth 1 move_no 1 time 115 nodes 142 nps 1224
-    info score cp -38 pv f4R e5f4
-    info depth 1 move_no 19 time 770 nodes 1740 nps 2256
-    info score cp -34 pv j1i0 e5L
-    info depth 1 move_no 21 time 901 nodes 2075 nps 2300
-    info score cp -4 pv e4R e5f4 j4R f5U
-    info depth 1 move_no 26 time 1295 nodes 2884 nps 2225
-    info score cp 2 pv e4d4 e5f4 j4R f5U d4U f5g5
-    info depth 1 move_no 74 time 3172 nodes 6271 nps 1976
-    info score cp 88 pv e4d5
-    info depth 1 move_no 0 time 3286 nodes 6485 nps 1973
-    info depth 2 move_no 1 time 3949 nodes 6637 nps 1680
-    info score cp 94 pv e4d5 e5L
-    info depth 2 move_no 0 time 6328 nodes 11906 nps 1881
-    info depth 3 move_no 1 time 14385 nodes 25088 nps 1744
-    info score cp 88 pv e4d5 f5g4 f4e3
-    info depth 3 move_no 0 time 34500 nodes 56613 nps 1640
-    info depth 4 move_no 1 time 76857 nodes 77465 nps 1007
-    info score cp 94 pv e4d5 f5g4 f4e3 e5f5
-    info depth 4 move_no 0 time 167827 nodes 180081 nps 1073
-    info depth 5 move_no 1 time 485413 nodes 570369 nps 1175
-    info score cp 88 pv e4d5 d8L f4U a9L d5c4
-    info depth 5 move_no 0 time 968229 nodes 1343782 nps 1387
-    bestmove e4d5    ; best moves found after 5 ply search
+		info depth 1 move_no 1 time (microsec) 36 nodes 68 nps 1881945
+		info score cp -3 pv d3e3
+		info depth 1 move_no 8 time (microsec) 100 nodes 142 nps 1418614
+		info score cp 1 pv h3g3
+		info depth 2 move_no 1 time (microsec) 609 nodes 339 nps 556530
+		info score cp 3 pv h3g3 a4b3
+		info depth 3 move_no 1 time (microsec) 2321 nodes 5085 nps 2190823
+		info score cp -2 pv h3g3 a4b3 h0g0
+		info depth 3 move_no 3 time (microsec) 2908 nodes 5559 nps 1911008
+		info score cp 1 pv e3L e4U h3g3
+		info depth 4 move_no 1 time (microsec) 5516 nodes 9288 nps 1683794
+		info score cp 3 pv e3L e4U h3g3 a4b3
+		info depth 5 move_no 1 time (microsec) 56633 nodes 157274 nps 2777070
+		info score cp 1 pv e3L e4U d3c4 d4d5 h3g3
+		bestmove e3L
+
 
 

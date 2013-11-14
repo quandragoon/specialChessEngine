@@ -125,7 +125,7 @@ static int_options iopts[] = {
 };
 
 // -----------------------------------------------------------------------------
-// Prototypes
+// Printing helpers
 // -----------------------------------------------------------------------------
 
 void getPV(move_t *pv, char *buf);
@@ -182,7 +182,7 @@ static char theMove[MAX_CHARS_IN_MOVE];
 void  UciBeginSearch(position_t *p, int depth, double tme) {
   move_t subpv[MAX_PLY_IN_SEARCH];
 #if !TEST
-	double et = 0.0;
+  double et = 0.0;
 #endif
   char bms[MAX_CHARS_IN_MOVE];
 
@@ -200,19 +200,19 @@ void  UciBeginSearch(position_t *p, int depth, double tme) {
 #endif
 
 #if PARALLEL
-	Abort glob_abort;
-	abort_constructor(&glob_abort); 
-	Speculative_add node_count_parallel = (Speculative_add) CILK_C_INIT_REDUCER(Speculative_reducer, 
-																						speculative_add_reduce, 
-																						speculative_add_identity,
-																						speculative_add_destroy, 
-																						(Speculative_reducer) {	.value = 0, .last_value = 0, 
-																																		.abort_flag = false, .reset_flag = false, 
-																																		.deterministic = false, .real_total = 0 });
-	CILK_C_REGISTER_REDUCER(node_count_parallel);
+  Abort glob_abort;
+  abort_constructor(&glob_abort, NULL); 
+  Speculative_add node_count_parallel = (Speculative_add) CILK_C_INIT_REDUCER(Speculative_reducer, 
+                                        speculative_add_reduce, 
+                                        speculative_add_identity,
+                                        speculative_add_destroy, 
+                                        (Speculative_reducer) { .value = 0, .last_value = 0, 
+                                                                .abort_flag = false, .reset_flag = false, 
+                                                                .deterministic = false, .real_total = 0 });
+  CILK_C_REGISTER_REDUCER(node_count_parallel);
 #else
-	Abort glob_abort;
-	Speculative_add node_count_parallel;
+  Abort glob_abort;
+  Speculative_add node_count_parallel;
 #endif
 
   for (int d = 1; d <= depth; d++) { // Iterative deepening
@@ -229,15 +229,15 @@ void  UciBeginSearch(position_t *p, int depth, double tme) {
 
 #if !TEST
 #if PARALLEL
-    if (!stopSpawning(&glob_abort)) {
-			// print something?
-			// do something if we are running out of time?
+    if (!is_aborted(&glob_abort)) {
+      // print something?
+      // do something if we are running out of time?
     } else {
       break;
     }
 #else
     if (!should_abort()) {
-			// print something?
+      // print something?
     } else {
       break;
     }
@@ -251,7 +251,7 @@ void  UciBeginSearch(position_t *p, int depth, double tme) {
   }
 
 #if PARALLEL
-	CILK_C_UNREGISTER_REDUCER(node_count_parallel);
+  CILK_C_UNREGISTER_REDUCER(node_count_parallel);
 #endif
 
   fprintf(OUT, "bestmove %s\n", bms);
@@ -463,10 +463,10 @@ int main(int argc, char *argv[]) {
           n = 2;
         } else if (strcmp(tok[1], "endgame") == 0) {
           ix = 0;
-					if (BOARD_WIDTH == 10)
-						fen_to_pos(&gme[ix], "ss9/10/10/10/10/10/10/10/10/9NN W");
-					else if (BOARD_WIDTH == 8)
-          	fen_to_pos(&gme[ix], "ss7/8/8/8/8/8/8/7NN W");
+          if (BOARD_WIDTH == 10)
+            fen_to_pos(&gme[ix], "ss9/10/10/10/10/10/10/10/10/9NN W");
+          else if (BOARD_WIDTH == 8)
+            fen_to_pos(&gme[ix], "ss7/8/8/8/8/8/8/7NN W");
           n = 2;
         } else if (strcmp(tok[1], "fen") == 0) {
           if (token_count < 3) {  // no input

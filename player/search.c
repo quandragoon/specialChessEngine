@@ -252,10 +252,10 @@ void init_best_move_history() {
   memset(best_move_history_reference, 0, sizeof(best_move_history_reference));
 }
 
-static void update_best_move_history(	position_t *p, int index_of_best,
-                                     	sortable_move_t *lst, int count,
-																			int * best_move_history) {
-	assert(ENABLE_TABLES);
+static void update_best_move_history( position_t *p, int index_of_best,
+                                      sortable_move_t *lst, int count,
+                                      int * best_move_history) {
+  assert(ENABLE_TABLES);
 
   int ctm = color_to_move_of(p);
 
@@ -290,16 +290,17 @@ static void update_best_move_history(	position_t *p, int index_of_best,
 // -----------------------------------------------------------------------------
 
 static score_t scout_search_reference(position_t *p, score_t beta, int depth,
-                            					int ply, int reduction, move_t *pv, 
-																			uint64_t *node_count, Speculative_add * node_count_parallel,
-																			move_t * killer, int * best_move_history,
-																			Abort* parent_abort, int sibling_index) {
+                                      int ply, int reduction, move_t *pv, 
+                                      uint64_t *node_count, Speculative_add * node_count_parallel,
+                                      move_t * killer, int * best_move_history,
+                                      Abort* parent_abort, int sibling_index) {
+  if (!TEST) printf("We shouldn't be in the reference code!\n");
   if (reduction > 0) {
     // We first perform a reduced depth search.
-    int score = scout_search_reference(	p, beta, depth - reduction, ply, 0, pv, 
-																				node_count, node_count_parallel, 
-																				killer, best_move_history,
-																				parent_abort, sibling_index);
+    int score = scout_search_reference( p, beta, depth - reduction, ply, 0, pv, 
+                                        node_count, node_count_parallel, 
+                                        killer, best_move_history,
+                                        parent_abort, sibling_index);
 
     // -(parentBeta-1) = beta --> parentBeta = -beta+1
     int parentBeta = -beta + 1;
@@ -309,29 +310,12 @@ static score_t scout_search_reference(position_t *p, score_t beta, int depth,
     if (parentScore < parentBeta) {
       return score;
     }
-
-#if TIMED_ABORTS
-    if (abortf) {
-      return 0;
-    }
-#endif
   }
 
   pv[0] = 0;
 
-  // check whether we should abort
-#if TIMED_ABORTS
-  tics++;
-  if ((tics & ABORT_CHECK_PERIOD) == 0) {
-    if (milliseconds() >= timeout) {
-      abortf = true;
-      return 0;
-    }
-  }
-#endif
-
   // get transposition table record if available
-	int hash_table_move = 0;
+  int hash_table_move = 0;
   ttRec_t *rec = tt_hashtable_get(p->key);  
   if (rec && !TEST) {
     if (tt_is_usable(rec, depth, beta)) {
@@ -387,13 +371,13 @@ static score_t scout_search_reference(position_t *p, score_t beta, int depth,
   for (int mv_index = 0; mv_index < num_of_moves; mv_index++) {
     move_t mv = get_move(move_list[mv_index]);
     if (mv == hash_table_move) {
-			assert(!TEST);
+      assert(!TEST);
       set_sort_key(&move_list[mv_index], SORT_MASK);
     } else if (mv == killer_a) {
-			assert(ENABLE_TABLES);
-			set_sort_key(&move_list[mv_index], SORT_MASK - 1);
+      assert(ENABLE_TABLES);
+      set_sort_key(&move_list[mv_index], SORT_MASK - 1);
     } else if (mv == killer_b) {
-			assert(ENABLE_TABLES);
+      assert(ENABLE_TABLES);
       set_sort_key(&move_list[mv_index], SORT_MASK - 2);
     } else {
       ptype_t  pce = ptype_mv_of(mv);
@@ -408,7 +392,6 @@ static score_t scout_search_reference(position_t *p, score_t beta, int depth,
   move_t subpv[MAX_PLY_IN_SEARCH];
   score_t score;
 
-  bool sortme = true;
   int legal_move_count = 0;
   int mv_index;  // used outside of the loop
   int best_move_index = 0;   // index of best move found
@@ -417,17 +400,14 @@ static score_t scout_search_reference(position_t *p, score_t beta, int depth,
     subpv[0] = 0;
 
     // on the fly sorting
-    if (sortme) {
-      for (int j = mv_index + 1; j < num_of_moves; j++) {
-        if (move_list[j] > move_list[mv_index]) {
-          sortable_move_t tmp = move_list[j];
-          move_list[j] = move_list[mv_index];
-          move_list[mv_index] = tmp;
-        }
+    for (int j = 0; j < num_of_moves; j++) {
+      sortable_move_t insert = move_list[j];
+      int hole = j;
+      while (hole > 0 && insert > move_list[hole-1]) {
+        move_list[hole] = move_list[hole-1];
+        hole--; 
       }
-      if (sort_key(move_list[mv_index]) == 0) {
-        sortme = false;
-      }
+      move_list[hole] = insert;
     }
 
     move_t mv = get_move(move_list[mv_index]);
@@ -486,14 +466,9 @@ static score_t scout_search_reference(position_t *p, score_t beta, int depth,
       }
 
       score = -scout_search_reference(&np, -(beta - 1), ext + depth - 1, ply + 1, next_reduction,
-          														subpv, node_count, node_count_parallel,
-																			killer, best_move_history,
-																			parent_abort, sibling_index);
-#if TIMED_ABORTS
-      if (abortf) {
-        return 0;
-      }
-#endif
+                                      subpv, node_count, node_count_parallel,
+                                      killer, best_move_history,
+                                      parent_abort, sibling_index);
     }
 
    scored:
@@ -523,14 +498,14 @@ static score_t scout_search_reference(position_t *p, score_t beta, int depth,
   assert(abs(best_score) != -INF);
 
   if (!TEST) {
-		if (best_score < beta) {
-		  tt_hashtable_put(p->key, depth,
-		      tt_adjust_score_for_hashtable(best_score, ply), UPPER, 0);
-		} else {
-		  tt_hashtable_put(p->key, depth,
-		      tt_adjust_score_for_hashtable(best_score, ply), LOWER, pv[0]);
-		}
-	}
+    if (best_score < beta) {
+      tt_hashtable_put(p->key, depth,
+          tt_adjust_score_for_hashtable(best_score, ply), UPPER, 0);
+    } else {
+      tt_hashtable_put(p->key, depth,
+          tt_adjust_score_for_hashtable(best_score, ply), LOWER, pv[0]);
+    }
+  }
   return best_score;
 }
 
@@ -542,26 +517,26 @@ static score_t scout_search_reference(position_t *p, score_t beta, int depth,
 // -----------------------------------------------------------------------------
 
 // We need a separate function so that we can cilk_spawn
-void subtree_scout(	int mv_index, sortable_move_t *move_list, int ply,
-                   	uint64_t * node_count_serial, Speculative_add *node_count, position_t *p, int depth,
-                   	score_t beta, Abort *abort, pthread_mutex_t *local_mutex,
-                   	score_t *best_score, int *best_move_index, move_t *pv, bool quiescence, 
-										position_t np, int ext, move_t mv, int next_reduction, 
-										move_t * killer, int * best_move_history);
+void subtree_scout( int mv_index, sortable_move_t *move_list, int ply,
+                    uint64_t * node_count_serial, Speculative_add *node_count, position_t *p, int depth,
+                    score_t beta, Abort *abort, pthread_mutex_t *local_mutex,
+                    score_t *best_score, int *best_move_index, move_t *pv, bool quiescence, 
+                    position_t np, int ext, move_t mv, int next_reduction, 
+                    move_t * killer, int * best_move_history);
 
-static score_t scout_search_student(	position_t *p, score_t beta, int depth, int ply, int reduction, move_t *pv, 
-																			uint64_t * node_count_serial, Speculative_add* node_count,
-																			// optimization tables:
-																			move_t * killer, int * best_move_history,
-																			// Used only in parallel mode
-																			Abort* parent_abort, int sibling_index) {
+static score_t scout_search_student(  position_t *p, score_t beta, int depth, int ply, int reduction, move_t *pv, 
+                                      uint64_t * node_count_serial, Speculative_add* node_count,
+                                      // optimization tables:
+                                      move_t * killer, int * best_move_history,
+                                      // Used only in parallel mode
+                                      Abort* parent_abort) {
 
   if (reduction > 0) {
     // We first perform a reduced depth search.
-    int score = scout_search_student(	p, beta, depth - reduction, ply, 0, pv, 
-																			node_count_serial, node_count,
-																			killer, best_move_history,
-																			parent_abort, sibling_index);
+    int score = scout_search_student( p, beta, depth - reduction, ply, 0, pv, 
+                                      node_count_serial, node_count,
+                                      killer, best_move_history,
+                                      parent_abort);
 
     // -(parentBeta-1) = beta --> parentBeta = -beta+1
     int parentBeta = -beta + 1;
@@ -583,9 +558,9 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
 
   // check whether we should abort
 #if PARALLEL
-	Abort abort;
-  abort_constructor_parent(&abort, parent_abort, sibling_index);
-  if (isAborted(&abort)) {
+  Abort abort;
+  abort_constructor(&abort, parent_abort);
+  if (is_aborted(&abort)) {
     return 0;
   }
 #elif TIMED_ABORTS
@@ -599,7 +574,7 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
 #endif
 
   // get transposition table record if available
-	int hash_table_move = 0;
+  int hash_table_move = 0;
   ttRec_t *rec = tt_hashtable_get(p->key);
   if (rec && !TEST) {
     if (tt_is_usable(rec, depth, beta)) {
@@ -655,13 +630,13 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
   for (int mv_index = 0; mv_index < num_of_moves; mv_index++) {
     move_t mv = get_move(move_list[mv_index]);
     if (mv == hash_table_move) {
-			assert(!TEST);
+      assert(!TEST);
       set_sort_key(&move_list[mv_index], SORT_MASK);
     } else if (mv == killer_a) {
-			assert(ENABLE_TABLES);
+      assert(ENABLE_TABLES);
       set_sort_key(&move_list[mv_index], SORT_MASK - 1);
     } else if (mv == killer_b) {
-			assert(ENABLE_TABLES);
+      assert(ENABLE_TABLES);
       set_sort_key(&move_list[mv_index], SORT_MASK - 2);
     } else {
       ptype_t  pce = ptype_mv_of(mv);
@@ -676,7 +651,6 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
   move_t subpv[MAX_PLY_IN_SEARCH];
   score_t score;
 
-  bool sortme = true;
   int legal_move_count = 0;
   int mv_index;  // used outside of the loop
   int best_move_index = 0;   // index of best move found
@@ -690,17 +664,14 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
     subpv[0] = 0;
 
     // on the fly sorting
-    if (sortme) {
-      for (int j = mv_index + 1; j < num_of_moves; j++) {
-        if (move_list[j] > move_list[mv_index]) {
-          sortable_move_t tmp = move_list[j];
-          move_list[j] = move_list[mv_index];
-          move_list[mv_index] = tmp;
-        }
+    for (int j = 0; j < num_of_moves; j++) {
+      sortable_move_t insert = move_list[j];
+      int hole = j;
+      while (hole > 0 && insert > move_list[hole-1]) {
+        move_list[hole] = move_list[hole-1];
+        hole--; 
       }
-      if (sort_key(move_list[mv_index]) == 0) {
-        sortme = false;
-      }
+      move_list[hole] = insert;
     }
 
     move_t mv = get_move(move_list[mv_index]);
@@ -713,14 +684,14 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
     bool blunder = false;  // shoot our own piece
 
     // increase node count
-		if (ENABLE_TABLES) {
-			if (PARALLEL) {
-				spec_add(&REDUCER_VIEW(*node_count), 1);
-			} else {
-				(*node_count_serial)++;
-			}
-		}
-		
+    if (ENABLE_TABLES) {
+      if (PARALLEL) {
+        spec_add(&REDUCER_VIEW(*node_count), 1);
+      } else {
+        (*node_count_serial)++;
+      }
+    }
+    
     piece_t victim = make_move(p, &np, mv);  // make the move baby!
     if (victim == KO) {
       continue;
@@ -767,22 +738,22 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
         }
       }
 #if PARALLEL
-			cilk_spawn 
-				subtree_scout(	mv_index, move_list, ply, node_count_serial, node_count, p, depth,
-												beta, &abort, &local_mutex, &best_score, &best_move_index,
-												pv, quiescence, np, ext, mv, next_reduction, 
-												killer, best_move_history);
+      cilk_spawn 
+        subtree_scout(  mv_index, move_list, ply, node_count_serial, node_count, p, depth,
+                        beta, &abort, &local_mutex, &best_score, &best_move_index,
+                        pv, quiescence, np, ext, mv, next_reduction, 
+                        killer, best_move_history);
 
-    	if (stopSpawning(&abort)) {
-     	 break;
-    	} else {
-     	 continue;
-    	}
+      if (is_aborted(&abort)) {
+        break;
+      } else {
+        continue;
+      }
 #else
       score = -scout_search_student(&np, -(beta - 1), ext + depth - 1, ply + 1, next_reduction,
-          													subpv, node_count_serial, node_count, 
-																		killer, best_move_history,
-																		parent_abort, sibling_index);
+                                    subpv, node_count_serial, node_count, 
+                                    killer, best_move_history,
+                                    parent_abort);
 
 #if TIMED_ABORTS
       if (abortf) {
@@ -795,9 +766,9 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
 
     scored:
 #if PARALLEL
-		pthread_mutex_lock(&local_mutex);
+    pthread_mutex_lock(&local_mutex);
 #endif
-		if (score > best_score) {
+    if (score > best_score) {
       best_score = score;
       best_move_index = mv_index;
       pv[0] = mv;
@@ -811,7 +782,7 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
           killer[KMT(ply,0)] = mv;
         }
 #if PARALLEL
-        do_abort(&abort, mv_index);
+        do_abort(&abort);
         pthread_mutex_unlock(&local_mutex);
 #endif
         break;
@@ -835,32 +806,32 @@ static score_t scout_search_student(	position_t *p, score_t beta, int depth, int
   assert(abs(best_score) != -INF);
 
   if (!TEST) {
-  	if (best_score < beta) {
-    	tt_hashtable_put(p->key, depth,
-      	  tt_adjust_score_for_hashtable(best_score, ply), UPPER, 0);
-  	} else {
+    if (best_score < beta) {
+      tt_hashtable_put(p->key, depth,
+          tt_adjust_score_for_hashtable(best_score, ply), UPPER, 0);
+    } else {
     tt_hashtable_put(p->key, depth,
         tt_adjust_score_for_hashtable(best_score, ply), LOWER, pv[0]);
-  	}
+    }
   }
 
   return best_score;
 }
 
-void subtree_scout(	int mv_index, sortable_move_t *move_list, int ply,
-                   	uint64_t * node_count_serial, Speculative_add *node_count, position_t *p, int depth,
-                   	score_t beta, Abort *abort, pthread_mutex_t *local_mutex,
-                   	score_t *best_score, int *best_move_index, move_t *pv, bool quiescence,
-                   	position_t np, int ext, move_t mv, int next_reduction,
-										move_t * killer, int * best_move_history) {
+void subtree_scout( int mv_index, sortable_move_t *move_list, int ply,
+                    uint64_t * node_count_serial, Speculative_add *node_count, position_t *p, int depth,
+                    score_t beta, Abort *abort, pthread_mutex_t *local_mutex,
+                    score_t *best_score, int *best_move_index, move_t *pv, bool quiescence,
+                    position_t np, int ext, move_t mv, int next_reduction,
+                    move_t * killer, int * best_move_history) {
     score_t score = 0;
     move_t subpv[MAX_PLY_IN_SEARCH];
     subpv[0] = 0;
 
-    score = -scout_search_student(	&np, -(beta - 1), ext + depth - 1, ply + 1, next_reduction,
-						  											subpv, node_count_serial, node_count, 
-																		killer, best_move_history,
-																		abort, mv_index);
+    score = -scout_search_student(  &np, -(beta - 1), ext + depth - 1, ply + 1, next_reduction,
+                                    subpv, node_count_serial, node_count, 
+                                    killer, best_move_history,
+                                    abort);
 
     pthread_mutex_lock(local_mutex);
     // compare score to best score
@@ -877,7 +848,7 @@ void subtree_scout(	int mv_index, sortable_move_t *move_list, int ply,
           killer[KMT(ply,1)] = killer[KMT(ply,0)];
           killer[KMT(ply,0)] = mv;
         }
-        do_abort(abort, mv_index);
+        do_abort(abort);
       }
     }
     pthread_mutex_unlock(local_mutex);
@@ -893,52 +864,52 @@ void subtree_scout(	int mv_index, sortable_move_t *move_list, int ply,
 // useful when you are comparing a serial test code to the reference code (i.e., 
 // there is no non-determinism so it is OK that the tables are all enabled)
 #define __MACRO_test_harness_setup \
-			move_t killer_test __KMT_dim__; \
-			int best_move_history_test __BMH_dim__; \
-			memcpy(killer_test, killer_reference, sizeof(killer_reference)); \
-			memcpy(best_move_history_test, best_move_history_reference, sizeof(best_move_history_reference)); \
+      move_t killer_test __KMT_dim__; \
+      int best_move_history_test __BMH_dim__; \
+      memcpy(killer_test, killer_reference, sizeof(killer_reference)); \
+      memcpy(best_move_history_test, best_move_history_reference, sizeof(best_move_history_reference)); \
 
 // This code will check that your test code's scout search performs the same 
 // beta cutoffs as the reference code
 void test_harness(position_t * np, score_t alpha, int depth,
                   int ply, int reduction, move_t *pv, 
-									uint64_t * node_count_serial, Speculative_add * node_count_parallel,
-									move_t * killer, int * best_move_history,
-									Abort* abort, int mv_index, 
-									score_t score_test) {
-	char fen[MAX_FEN_CHARS];
-	position_t np_test, np_conversion;
+                  uint64_t * node_count_serial, Speculative_add * node_count_parallel,
+                  move_t * killer, int * best_move_history,
+                  Abort* abort, int mv_index, 
+                  score_t score_test) {
+  char fen[MAX_FEN_CHARS];
+  position_t np_test, np_conversion;
 
-	// First, we will translate your board representation into the board 
-	// representation that the reference code understands.  We use the FEN board 
-	// representation as an intermediate representation to translate your board to 
-	// the reference code board. (NOTE: pos_to_fen() and fen_to_pos() together 
-	// perform an identity operation right now, since the reference code board 
-	// representation == the test code board representation by default.
-	// When/if you change your board representation, you will have to modify 
-	// fen_to_pos().
-	//
-	// NOTE: you may also change the reference code to use your optimized board 
-	// representation, but this may not catch as many bugs.  We recommend that you 
-	// copy/paste the reference move_gen code so that the reference code ONLY 
-	// touches the original board representation.  That way, all you have to do to 
-	// run the tests is modify pos_to_fen.
-	memcpy(&np_test, np, sizeof(position_t));
-	pos_to_fen(np, fen);
-	fen_to_pos(&np_conversion, fen);
-	memcpy(&np_test.board, &np_conversion.board, sizeof(piece_t) * ARR_SIZE);
+  // First, we will translate your board representation into the board 
+  // representation that the reference code understands.  We use the FEN board 
+  // representation as an intermediate representation to translate your board to 
+  // the reference code board. (NOTE: pos_to_fen() and fen_to_pos() together 
+  // perform an identity operation right now, since the reference code board 
+  // representation == the test code board representation by default.
+  // When/if you change your board representation, you will have to modify 
+  // fen_to_pos().
+  //
+  // NOTE: you may also change the reference code to use your optimized board 
+  // representation, but this may not catch as many bugs.  We recommend that you 
+  // copy/paste the reference move_gen code so that the reference code ONLY 
+  // touches the original board representation.  That way, all you have to do to 
+  // run the tests is modify pos_to_fen.
+  memcpy(&np_test, np, sizeof(position_t));
+  pos_to_fen(np, fen);
+  fen_to_pos(&np_conversion, fen);
+  memcpy(&np_test.board, &np_conversion.board, sizeof(piece_t) * ARR_SIZE);
 
-	score_t score_ref = -scout_search_reference(&np_test, -alpha, depth, ply, reduction, pv, 
-																							node_count_serial, node_count_parallel,
-																							killer, best_move_history, abort, mv_index);
+  score_t score_ref = -scout_search_reference(&np_test, -alpha, depth, ply, reduction, pv, 
+                                              node_count_serial, node_count_parallel,
+                                              killer, best_move_history, abort, mv_index);
 
-	// if the ref / test codes don't result in the same beta-cutoff, the test code 
-	// must be buggy!
-	int cuttoff_condition = (score_ref > alpha) == (score_test > alpha);
-	if (!cuttoff_condition) {
-		printf("Score MISMATCH! [expected = %d, actual = %d, depth = %d, mv index = %d]\n", score_ref, score_test, depth, mv_index);
-		assert(0);
-	}
+  // if the ref / test codes don't result in the same beta-cutoff, the test code 
+  // must be buggy!
+  int cuttoff_condition = (score_ref > alpha) == (score_test > alpha);
+  if (!cuttoff_condition) {
+    printf("Score MISMATCH! [expected = %d, actual = %d, depth = %d, mv index = %d]\n", score_ref, score_test, depth, mv_index);
+    assert(0);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -950,7 +921,7 @@ void test_harness(position_t * np, score_t alpha, int depth,
 static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
                         int ply, move_t *pv,
                         uint64_t * node_count_serial, Speculative_add *node_count_parallel, 
-												Abort *parent_abort, int sibling_index) {
+                        Abort *parent_abort) {
   pv[0] = 0;
   // get transposition table record if available
   ttRec_t *rec = tt_hashtable_get(p->key);
@@ -984,14 +955,14 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
   pthread_mutex_t local_mutex;
   pthread_mutex_init(&local_mutex, NULL);
   Abort abort;
-	abort_constructor_parent(&abort, parent_abort, sibling_index);
+  abort_constructor(&abort, parent_abort);
 
   color_t fctm = color_to_move_of(p);
   int pov = 1 - fctm*2;      // point of view = 1 for white, -1 for black
-	move_t killer_a = killer_reference[ply][0];
+  move_t killer_a = killer_reference[ply][0];
   move_t killer_b = killer_reference[ply][1];
 
-	int mv_index;
+  int mv_index;
 
   // sort special moves to the front
   for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
@@ -1015,24 +986,20 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
   move_t subpv[MAX_PLY_IN_SEARCH];
   score_t score;
 
-  bool sortme = true;
   int legal_move_count = 0;
   
-	for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
+  for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
     subpv[0] = 0;
 
     // on the fly sorting
-    if (sortme) {
-      for (int j = mv_index + 1; j < num_of_moves; j++) {
-        if (move_list[j] > move_list[mv_index]) {
-          sortable_move_t tmp = move_list[j];
-          move_list[j] = move_list[mv_index];
-          move_list[mv_index] = tmp;
-        }
+    for (int j = 0; j < num_of_moves; j++) {
+      sortable_move_t insert = move_list[j];
+      int hole = j;
+      while (hole > 0 && insert > move_list[hole-1]) {
+        move_list[hole] = move_list[hole-1];
+        hole--; 
       }
-      if (sort_key(move_list[mv_index]) == 0) {
-        sortme = false;
-      }
+      move_list[hole] = insert;
     }
 
     move_t mv = get_move(move_list[mv_index]);
@@ -1044,9 +1011,9 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
     bool blunder = false;  // shoot our own piece
 
 #if PARALLEL
-		spec_add(&REDUCER_VIEW(*node_count_parallel), 1);
+    spec_add(&REDUCER_VIEW(*node_count_parallel), 1);
 #else
-		(*node_count_serial)++;
+    (*node_count_serial)++;
 #endif
 
     piece_t victim = make_move(p, &np, mv);  // make the move baby!
@@ -1083,29 +1050,29 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
     if (legal_move_count == 1 || quiescence) {
       score = -searchPV(&np, -beta, -alpha, ext + depth - 1, ply + 1,
                         subpv, node_count_serial, node_count_parallel,
-												&abort, sibling_index);
+                        &abort);
 #if TIMED_ABORTS
       if (abortf) {
         return 0;
       }
 #endif
     } else {
-			
+      
 #if TEST
-			__MACRO_test_harness_setup
+      __MACRO_test_harness_setup
 #endif
-			
-      score = -scout_search_student( 	&np, -alpha, ext + depth - 1, ply + 1, 0, subpv, 
-																			node_count_serial, node_count_parallel, 
-																			&killer_reference[0][0], &best_move_history_reference[0][0][0][0],
-																			&abort, mv_index);
+      
+      score = -scout_search_student(  &np, -alpha, ext + depth - 1, ply + 1, 0, subpv, 
+                                      node_count_serial, node_count_parallel, 
+                                      &killer_reference[0][0], &best_move_history_reference[0][0][0][0],
+                                      &abort);
 
 #if TEST
-			test_harness(	&np, alpha, ext + depth - 1, ply + 1, 0, subpv,
-										node_count_serial, node_count_parallel,
-										&killer_test[0][0], &best_move_history_test[0][0][0][0],
-										&abort, mv_index, 
-										score);
+      test_harness( &np, alpha, ext + depth - 1, ply + 1, 0, subpv,
+                    node_count_serial, node_count_parallel,
+                    &killer_test[0][0], &best_move_history_test[0][0][0][0],
+                    &abort, mv_index, 
+                    score);
 #endif
 
 #if TIMED_ABORTS
@@ -1116,7 +1083,7 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
       if (score > alpha) {
         score = -searchPV(&np, -beta, -alpha, ext + depth - 1, ply + 1,
                           subpv, node_count_serial, node_count_parallel,
-													&abort, sibling_index);
+                          &abort);
 #if TIMED_ABORTS
         if (abortf) {
           return 0;
@@ -1139,7 +1106,7 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
       }
       if (score >= beta) {
         if (mv != killer_reference[ply][0] && ENABLE_TABLES) {
-					killer_reference[ply][1] = killer_reference[ply][0];
+          killer_reference[ply][1] = killer_reference[ply][0];
           killer_reference[ply][0] = mv;
         }
         break;
@@ -1177,9 +1144,9 @@ static score_t searchPV(position_t *p, score_t alpha, score_t beta, int depth,
 // This handles scout search logic for the first level of the search tree
 // -----------------------------------------------------------------------------
 
-score_t searchRoot(	position_t *p, score_t alpha, score_t beta, int depth,
-                   	int ply, move_t *pv, uint64_t *node_count_serial, Speculative_add *node_count_parallel, 
-										FILE *OUT, Abort *abort) {
+score_t searchRoot( position_t *p, score_t alpha, score_t beta, int depth,
+                    int ply, move_t *pv, uint64_t *node_count_serial, Speculative_add *node_count_parallel, 
+                    FILE *OUT, Abort *abort) {
   static int num_of_moves = 0; // number of moves in list
   // hopefully, more than we will need
   static sortable_move_t move_list[MAX_NUM_MOVES];
@@ -1197,7 +1164,7 @@ score_t searchRoot(	position_t *p, score_t alpha, score_t beta, int depth,
   }
 
   score_t best_score = -INF;
-	assert (best_score == alpha); // initial conditions
+  assert (best_score == alpha); // initial conditions
   move_t subpv[MAX_PLY_IN_SEARCH];
   color_t fctm = color_to_move_of(p);
   int pov = 1 - fctm * 2;  // pov = 1 for White, -1 for Black
@@ -1213,9 +1180,9 @@ score_t searchRoot(	position_t *p, score_t alpha, score_t beta, int depth,
     }
 
 #if PARALLEL
-		spec_add(&REDUCER_VIEW(*node_count_parallel), 1);
+    spec_add(&REDUCER_VIEW(*node_count_parallel), 1);
 #else
-		(*node_count_serial)++;
+    (*node_count_serial)++;
 #endif
 
     piece_t x = make_move(p, &np, mv);  // make the move baby!
@@ -1234,9 +1201,9 @@ score_t searchRoot(	position_t *p, score_t alpha, score_t beta, int depth,
     }
 
     if (mv_index == 0 || depth == 1) {
-		  // We guess that the first move is the principle variation
+      // We guess that the first move is the principle variation
       score = -searchPV(&np, -beta, -alpha, depth - 1, ply + 1,
-                        subpv, node_count_serial, node_count_parallel, abort, mv_index);
+                        subpv, node_count_serial, node_count_parallel, abort);
 #if TIMED_ABORTS
       if (abortf) {
         return 0;
@@ -1245,20 +1212,20 @@ score_t searchRoot(	position_t *p, score_t alpha, score_t beta, int depth,
     } else {
 
 #if TEST
-			__MACRO_test_harness_setup
+      __MACRO_test_harness_setup
 #endif
 
-      score = -scout_search_student(	&np, -alpha, depth - 1, ply + 1, 0,
-                            					subpv, node_count_serial, node_count_parallel, 
-																			&killer_reference[0][0], &best_move_history_reference[0][0][0][0],
-																			abort, mv_index);
+      score = -scout_search_student(  &np, -alpha, depth - 1, ply + 1, 0,
+                                      subpv, node_count_serial, node_count_parallel, 
+                                      &killer_reference[0][0], &best_move_history_reference[0][0][0][0],
+                                      abort);
 
 #if TEST
-			test_harness(	&np, alpha, depth - 1, ply + 1, 0, subpv,
-										node_count_serial, node_count_parallel,
-										&killer_test[0][0], &best_move_history_test[0][0][0][0],
-										abort, mv_index, 
-										score);
+      test_harness( &np, alpha, depth - 1, ply + 1, 0, subpv,
+                    node_count_serial, node_count_parallel,
+                    &killer_test[0][0], &best_move_history_test[0][0][0][0],
+                    abort, mv_index, 
+                    score);
 #endif
 
 #if TIMED_ABORTS
@@ -1267,11 +1234,11 @@ score_t searchRoot(	position_t *p, score_t alpha, score_t beta, int depth,
       }
 #endif
 
-			// If its score exceeds the current best score, 
+      // If its score exceeds the current best score, 
       if (score > alpha) {
         score = -searchPV(&np, -beta, -alpha, depth - 1, ply + 1,
                           subpv, node_count_serial, node_count_parallel,
-													abort, mv_index);
+                          abort);
 #if TIMED_ABORTS
         if (abortf) {
           return 0;
@@ -1281,10 +1248,10 @@ score_t searchRoot(	position_t *p, score_t alpha, score_t beta, int depth,
     }
 
   scored:
-		assert( (score > best_score) == (score > alpha) ); // only valid for the root node
+    assert( (score > best_score) == (score > alpha) ); // only valid for the root node
 
     if (score > best_score) {
-			assert(score > alpha);
+      assert(score > alpha);
 
       best_score = score;
       pv[0] = mv;
@@ -1315,7 +1282,7 @@ score_t searchRoot(	position_t *p, score_t alpha, score_t beta, int depth,
               " nps %" PRIu64 "\n",
               depth, mv_index + 1, (int) (et * 1000), *node_count_serial, nps);
 #endif
-fprintf(OUT, "info score cp %d pv %s\n", score, pvbuf);
+      fprintf(OUT, "info score cp %d pv %s\n", score, pvbuf);
 
       // Slide this move to the front of the move list
       for (int j = mv_index; j > 0; j--) {
@@ -1324,14 +1291,14 @@ fprintf(OUT, "info score cp %d pv %s\n", score, pvbuf);
       move_list[0] = mv;
     }
 
-		// Normal alpha-beta logic: if the current score is better than what the 
-		// maximizer has been able to get so far, take that new value.  Likewise, 
-		// score >= beta is the beta cutoff condition
+    // Normal alpha-beta logic: if the current score is better than what the 
+    // maximizer has been able to get so far, take that new value.  Likewise, 
+    // score >= beta is the beta cutoff condition
     if (score > alpha) {
       alpha = score; 
     }
     if (score >= beta) {
-			assert(0);
+      assert(0);
       break;
     }
   }

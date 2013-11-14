@@ -466,10 +466,10 @@ square_t fire(position_t *p) {
 piece_t make_move(position_t *old, position_t *p, move_t mv) {
   assert(mv != 0);
 
-	// move phase 1
+  // move phase 1
   low_level_make_move(old, p, mv);
 
-	// move phase 2
+  // move phase 2
   square_t victim_sq = fire(p);
 
   WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )

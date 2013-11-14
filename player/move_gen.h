@@ -28,13 +28,13 @@
 
 #define MAX_NUM_MOVES 100      // real number = 7 x (8 + 3) + 1 x (8 + 4) = 89
 #define MAX_PLY_IN_SEARCH 100  // up to 100 ply
-#define MAX_PLY_IN_GAME 4096  // long game!  ;^)
+#define MAX_PLY_IN_GAME 4096   // long game!  ;^)
 
 // Used for debugging and display
 #define MAX_CHARS_IN_MOVE 16  // Could be less
 #define MAX_CHARS_IN_TOKEN 64
 
-// the board (which is 10x10) is centered in a 16x16 array
+// the board (which is 8x8 or 10x10) is centered in a 16x16 array
 #define ARR_WIDTH 16
 #define ARR_SIZE (ARR_WIDTH * ARR_WIDTH)
 
