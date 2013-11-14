@@ -907,7 +907,7 @@ void test_harness(position_t * np, score_t alpha, int depth,
   // must be buggy!
   int cuttoff_condition = (score_ref > alpha) == (score_test > alpha);
   if (!cuttoff_condition) {
-    printf("Score MISMATCH! [expected = %d, actual = %d, depth = %d, mv index = %d]\n", score_ref, score_test, depth, mv_index);
+    printf("Beta-cutoff MISMATCH! [expected = %d, actual = %d, alpha = %d, depth = %d, mv index = %d]\n", score_ref, score_test, alpha, depth, mv_index);
     assert(0);
   }
 }
@@ -1224,7 +1224,7 @@ score_t searchRoot( position_t *p, score_t alpha, score_t beta, int depth,
       test_harness( &np, alpha, depth - 1, ply + 1, 0, subpv,
                     node_count_serial, node_count_parallel,
                     &killer_test[0][0], &best_move_history_test[0][0][0][0],
-                    abort, mv_index, 
+                    abort, mv_index,
                     score);
 #endif
 
