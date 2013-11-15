@@ -1,6 +1,6 @@
 CXX = gcc
 TARGET := leiserchess
-SRC := util.c tt.c fen.c move_gen.c search.c eval.c abort.c speculative_add.c
+SRC := util.c tt.c fen.c move_gen.c move_gen_reference.c search.c eval.c abort.c speculative_add.c
 OBJ := $(addsuffix .o, $(basename $(SRC)))
 
 ifeq ($(PARALLEL),1)

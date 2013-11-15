@@ -177,6 +177,36 @@ static bool is_repeated(position_t *p, score_t *score, int ply) {
   return false;
 }
 
+// Detect move repetition
+static bool is_repeated_reference(position_reference_t *p, score_t *score, int ply) {
+  if (!DETECT_DRAWS) {
+    return false;   // no draw detected
+  }
+
+  position_t *x = p->history;
+  uint64_t cur = p->key;
+
+  while (true) {
+    if (x->victim) {
+      break;  // cannot be a repetition
+    }
+    x = x->history;
+    if (x->victim) {
+      break;  // cannot be a repetition
+    }
+    if (x->key == cur) {               // is a repetition
+      if (ply & 1) {
+        *score = -DRAW;
+      } else {
+        *score = DRAW;
+      }
+      return true;
+    }
+    x = x->history;
+  }
+  return false;
+}
+
 // check the victim piece returned by the move to determine if it's a game-over 
 // situation.  If so, also calculate the score depending on the pov (which 
 // player's point of view)
@@ -289,7 +319,7 @@ static void update_best_move_history( position_t *p, int index_of_best,
 // code is functionally correct. 
 // -----------------------------------------------------------------------------
 
-static score_t scout_search_reference(position_t *p, score_t beta, int depth,
+static score_t scout_search_reference(position_reference_t *p, score_t beta, int depth,
                                       int ply, int reduction, move_t *pv, 
                                       uint64_t *node_count, Speculative_add * node_count_parallel,
                                       move_t * killer, int * best_move_history,
@@ -356,11 +386,11 @@ static score_t scout_search_reference(position_t *p, score_t beta, int depth,
     }
   }
 
-  position_t np; // next position
+  position_reference_t np; // next position
   // hopefully, more than we will need
   sortable_move_t move_list[MAX_NUM_MOVES];
   // number of moves in list
-  int num_of_moves = generate_all(p, move_list, false);
+  int num_of_moves = generate_all_reference(p, move_list, false);
 
   color_t fctm = color_to_move_of(p);
   int pov = 1 - fctm*2;      // point of view = 1 for white, -1 for black
@@ -447,7 +477,7 @@ static score_t scout_search_reference(position_t *p, score_t beta, int depth,
       ext = 1;  // extend captures
     }
 
-    if (is_repeated(&np, &score, ply)) {
+    if (is_repeated_reference(&np, &score, ply)) {
       // Break out of loop.
       goto scored;
     }
@@ -540,6 +570,7 @@ static score_t scout_search_student(  position_t *p, score_t beta, int depth, in
 
     // -(parentBeta-1) = beta --> parentBeta = -beta+1
     int parentBeta = -beta + 1;
+    // int parentBeta = 0;
     int parentScore = -score;
 
     // No need to search to full depth, return this score.

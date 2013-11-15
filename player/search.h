@@ -24,6 +24,7 @@
 #define SEARCH_H
 
 #include "move_gen.h"
+#include "move_gen_reference.h"
 #include "abort.h"
 #include "speculative_add.h"
 
