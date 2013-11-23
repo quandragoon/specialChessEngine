@@ -9,8 +9,8 @@ adjudicate = 400
 
 player = sort_reordered
 invoke = ../player/leiserchess
-depth = 3
+fis = 3 0
 
 player = reference
 invoke = ../player/reference
-depth = 3
+fis = 3 0

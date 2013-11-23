@@ -651,6 +651,7 @@ static score_t scout_search_student(  position_t *p, score_t beta, int depth, in
   sortable_move_t move_list[MAX_NUM_MOVES];
   // number of moves in list
   int num_of_moves = generate_all(p, move_list, false);
+  int num_no_history_moves = 0;
 
   color_t fctm = color_to_move_of(p);
   int pov = 1 - fctm*2;      // point of view = 1 for white, -1 for black
@@ -675,9 +676,42 @@ static score_t scout_search_student(  position_t *p, score_t beta, int depth, in
       square_t fs  = from_square(mv);
       int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
       square_t ts  = to_square(mv);
-      set_sort_key(&move_list[mv_index], best_move_history[BMH(fctm,pce,ts,ot)]);
+      int move_history = best_move_history[BMH(fctm,pce,ts,ot)];
+      if (move_history == 0) {
+        num_no_history_moves++;
+      }
+      set_sort_key(&move_list[mv_index], move_history);
     }
   }
+
+  int start_index = 0;
+  int end_index = num_of_moves - 1;
+  bool move_right = true;
+  while (start_index < end_index) {
+    if (move_right) {
+      if (sort_key(move_list[start_index]) > 0)
+        start_index++;
+      else
+        move_right = false;
+    } else {
+      if (sort_key(move_list[end_index]) == 0)
+        end_index--;
+      else {
+        sortable_move_t tmp_element = move_list[start_index];
+        move_list[start_index] = move_list[end_index];
+        move_list[end_index] = tmp_element;
+
+        move_right = true;
+        end_index--;
+        start_index++;
+      }
+    }
+  }
+
+#if TEST
+  for (int j = num_of_moves - num_no_history_moves; j < num_of_moves; j++)
+    assert(sort_key(move_list[j]) == 0);
+#endif
 
   move_t subpv[MAX_PLY_IN_SEARCH];
   score_t score;
@@ -693,7 +727,7 @@ static score_t scout_search_student(  position_t *p, score_t beta, int depth, in
 
   // on the fly sorting
   // TODO: Move back to the for loop for parallel case
-  for (int j = 0; j < num_of_moves; j++) {
+  for (int j = 0; j < num_of_moves - num_no_history_moves; j++) {
     sortable_move_t insert = move_list[j];
     int hole = j;
     while (hole > 0 && insert > move_list[hole-1]) {
