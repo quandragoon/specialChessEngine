@@ -67,7 +67,7 @@ move_t move_of_reference(ptype_t typ, rot_t rot, square_t from_sq, square_t to_s
 
 // Generate all moves from position p.  Returns number of moves.
 // strict currently ignored
-int generate_all_reference(position_reference_t *p, sortable_move_t *sortable_move_list,
+int generate_all_reference(position_t *p, sortable_move_t *sortable_move_list,
                  bool strict) {
   color_t ctm = color_to_move_of(p);
   int move_count = 0;
@@ -139,7 +139,7 @@ int generate_all_reference(position_reference_t *p, sortable_move_t *sortable_mo
   return move_count;
 }
 
-void low_level_make_move_reference(position_reference_t *old, position_reference_t *p, move_t mv) {
+void low_level_make_move_reference(position_t *old, position_t *p, move_t mv) {
   assert(mv != 0);
 
   WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
@@ -240,7 +240,7 @@ void low_level_make_move_reference(position_reference_t *old, position_reference
 
 
 // returns square of piece to be removed from board or 0
-square_t fire_reference(position_reference_t *p) {
+square_t fire_reference(position_t *p) {
   color_t fctm = (color_to_move_of(p) == WHITE) ? BLACK : WHITE;
   square_t sq = p->kloc[fctm];
   int bdir = ori_of(p->board[sq]);
@@ -275,7 +275,7 @@ square_t fire_reference(position_reference_t *p) {
 
 
 // return 0 or victim piece or KO (== -1)
-piece_t make_move_reference(position_reference_t *old, position_reference_t *p, move_t mv) {
+piece_t make_move_reference(position_t *old, position_t *p, move_t mv) {
   assert(mv != 0);
 
   // move phase 1
@@ -318,9 +318,9 @@ piece_t make_move_reference(position_reference_t *old, position_reference_t *p, 
 
 // helper function for do_perft
 // ply starting with 0
-static uint64_t perft_search_reference(position_reference_t *p, int depth, int ply) {
+static uint64_t perft_search_reference(position_t *p, int depth, int ply) {
   uint64_t node_count = 0;
-  position_reference_t np;
+  position_t np;
   sortable_move_t lst[MAX_NUM_MOVES];
   int num_moves;
   int i;
@@ -362,7 +362,7 @@ static uint64_t perft_search_reference(position_reference_t *p, int depth, int p
 }
 
 // help to verify the move generator
-void do_perft_reference(position_reference_t *gme, int depth, int ply) {
+void do_perft_reference(position_t *gme, int depth, int ply) {
   fen_to_pos(gme, "");
 
   for (int d = 1; d <= depth; d++) {

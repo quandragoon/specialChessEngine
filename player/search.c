@@ -178,7 +178,7 @@ static bool is_repeated(position_t *p, score_t *score, int ply) {
 }
 
 // Detect move repetition
-static bool is_repeated_reference(position_reference_t *p, score_t *score, int ply) {
+static bool is_repeated_reference(position_t *p, score_t *score, int ply) {
   if (!DETECT_DRAWS) {
     return false;   // no draw detected
   }
@@ -319,7 +319,7 @@ static void update_best_move_history( position_t *p, int index_of_best,
 // code is functionally correct. 
 // -----------------------------------------------------------------------------
 
-static score_t scout_search_reference(position_reference_t *p, score_t beta, int depth,
+static score_t scout_search_reference(position_t *p, score_t beta, int depth,
                                       int ply, int reduction, move_t *pv, 
                                       uint64_t *node_count, Speculative_add * node_count_parallel,
                                       move_t * killer, int * best_move_history,
@@ -386,7 +386,7 @@ static score_t scout_search_reference(position_reference_t *p, score_t beta, int
     }
   }
 
-  position_reference_t np; // next position
+  position_t np; // next position
   // hopefully, more than we will need
   sortable_move_t move_list[MAX_NUM_MOVES];
   // number of moves in list

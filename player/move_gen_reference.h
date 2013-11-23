@@ -28,20 +28,6 @@
 #include "./move_gen.h"
 
 // -----------------------------------------------------------------------------
-// position
-// -----------------------------------------------------------------------------
-
-typedef struct position_reference {
-  piece_t      board[ARR_SIZE];
-  struct position  *history;     // history of position
-  uint64_t     key;              // hash key
-  int          ply;              // Even ply are White, odd are Black
-  move_t       last_move;        // move that led to this position
-  piece_t      victim;           // piece destroyed by shooter
-  square_t     kloc[2];          // location of kings
-} position_reference_t;
-
-// -----------------------------------------------------------------------------
 // Function prototypes
 // -----------------------------------------------------------------------------
 
@@ -50,10 +36,10 @@ square_t from_square_reference(move_t mv);
 square_t to_square_reference(move_t mv);
 rot_t rot_of_reference(move_t mv);
 move_t move_of_reference(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq);
-int generate_all_reference(position_reference_t *p, sortable_move_t *sortable_move_list,
+int generate_all_reference(position_t *p, sortable_move_t *sortable_move_list,
                  bool strict);
-void do_perft_reference(position_reference_t *gme, int depth, int ply);
-void low_level_make_move_reference(position_reference_t *old, position_reference_t *p, move_t mv);
-piece_t make_move_reference(position_reference_t *old, position_reference_t *p, move_t mv);
+void do_perft_reference(position_t *gme, int depth, int ply);
+void low_level_make_move_reference(position_t *old, position_t *p, move_t mv);
+piece_t make_move_reference(position_t *old, position_t *p, move_t mv);
 
 #endif  // MOVE_GEN_REFERENCE_H
