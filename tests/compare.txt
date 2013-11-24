@@ -9,8 +9,8 @@ adjudicate = 400
 
 player = current 
 invoke = ../player/leiserchess
-fis = 3 0
+fis = 10 0.1
 
 player = reference
-invoke = ../player/binaries/reference
-fis = 3 0
+invoke = ../player/binaries/build-1385332696
+fis = 10 0.1
