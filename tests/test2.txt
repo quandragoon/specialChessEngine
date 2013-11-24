@@ -7,10 +7,10 @@ adjudicate = 400
 # now we have the player definitions
 # --
 
-player = sort_reordered
+player = current 
 invoke = ../player/leiserchess
 fis = 3 0
 
 player = reference
-invoke = ../player/reference
+invoke = ../player/binaries/optimized_sort
 fis = 3 0

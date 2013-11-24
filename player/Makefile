@@ -24,9 +24,7 @@ leiserchess : $(OBJ) leiserchess.o
 	$(CXX) $(OBJ) leiserchess.o $(LDFLAGS) -o $@
 
 compare : clean leiserchess
-	rm -f ../tests/test2.pgn
-	java -jar ../autotester/lauto.jar ../tests/test2.txt
-	../tests/pgnrate.tcl ../tests/test2.pgn
+	bash -c "for i in {1..3}; do rm -f ../tests/test2.pgn; java -jar ../autotester/lauto.jar ../tests/test2.txt; ../tests/pgnrate.tcl ../tests/test2.pgn; done"
 
 clean :
 	rm -f *.o *~ $(TARGET)
