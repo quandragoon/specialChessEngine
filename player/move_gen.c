@@ -40,6 +40,7 @@ int USE_KO;  // Respect the Ko rule
 
 static char *color_strs[2] = {"White", "Black"};
 
+
 char * color_to_str(color_t c) {
   return color_strs[c];
 }
@@ -131,6 +132,14 @@ void init_zob() {
     }
   }
   zob_color = myrand();
+}
+
+piece_t bounds_board[BOUNDS_BOARD_SIZE];
+
+void init_bounds_board() {
+  for (int i = ARR_SIZE; i < BOUNDS_BOARD_SIZE; i++) {
+    bounds_board[i] = INVALID_PIECE;
+  }
 }
 
 
@@ -278,8 +287,8 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
         }
         // directions
         for (int d = 0; d < 8; d++) {
-          int dest = sq + dir_of(d);
-          if (ptype_of(p->board[dest]) == INVALID) {
+          square_t dest = sq + dir_of(d);
+          if (ptype_of(bounds_board[dest]) == INVALID) {
             continue;    // illegal square
           }
 
@@ -437,7 +446,11 @@ square_t fire(position_t *p) {
 
   while (true) {
     sq += beam_of(bdir);
-    assert(sq < ARR_SIZE && sq >= 0);
+    assert(sq < BOUNDS_BOARD_SIZE && sq >= 0);
+
+    if (ptype_of(bounds_board[sq]) == INVALID) { // Ran off edge of board
+      return 0;
+    } 
 
     switch (ptype_of(p->board[sq])) {
      case EMPTY:  // empty square
@@ -451,9 +464,7 @@ square_t fire(position_t *p) {
      case KING:  // King
       return sq;  // sorry, game over my friend!
       break;
-     case INVALID:  // Ran off edge of board
-      return 0;
-      break;
+     case INVALID:  
      default:  // Shouldna happen, man!
       assert(false);
       break;

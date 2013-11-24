@@ -425,6 +425,7 @@ int main(int argc, char *argv[]) {
 
   init_options();
   init_zob();
+  init_bounds_board();
 
   char** tok = (char**) malloc(sizeof(char*) * MAX_CHARS_IN_TOKEN * MAX_PLY_IN_GAME);
   int   ix = 0;  // index of which position we are operating on

@@ -135,6 +135,9 @@ void mark_laser_path(position_t *p, char *laser_map, color_t c,
 
   while (true) {
     sq += beam_of(bdir);
+    if (ptype_of(bounds_board[sq]) == INVALID) { // Ran off edge of board
+      return;
+    }
     laser_map[sq] |= mark_mask;
     assert(sq < ARR_SIZE && sq >= 0);
 
@@ -150,9 +153,7 @@ void mark_laser_path(position_t *p, char *laser_map, color_t c,
      case KING:  // King
       return;  // sorry, game over my friend!
       break;
-     case INVALID:  // Ran off edge of board
-      return;
-      break;
+     case INVALID:  
      default:  // Shouldna happen, man!
       assert(false);
       break;
