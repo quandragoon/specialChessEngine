@@ -23,6 +23,10 @@ LDFLAGS= -Wall -lrt -lm -lcilkrts -ldl
 leiserchess : $(OBJ) leiserchess.o
 	$(CXX) $(OBJ) leiserchess.o $(LDFLAGS) -o $@
 
+compare : clean leiserchess
+	rm -f ../tests/test2.pgn
+	java -jar ../autotester/lauto.jar ../tests/test2.txt
+	../tests/pgnrate.tcl ../tests/test2.pgn
 
 clean :
 	rm -f *.o *~ $(TARGET)
