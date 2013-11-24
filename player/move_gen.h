@@ -35,23 +35,23 @@
 #define MAX_CHARS_IN_TOKEN 64
 
 // the board (which is 8x8 or 10x10) is centered in a 16x16 array
-#define ARR_WIDTH 8 
+#define ARR_WIDTH 16
 #define ARR_SIZE (ARR_WIDTH * ARR_WIDTH)
 
 // board is 8 x 8 or 10 x 10
 #define BOARD_WIDTH 8
 
-typedef uint8_t square_t;
+typedef int square_t;
 typedef int rnk_t;
 typedef int fil_t;
 
 #define FIL_ORIGIN ((ARR_WIDTH - BOARD_WIDTH) / 2)
 #define RNK_ORIGIN ((ARR_WIDTH - BOARD_WIDTH) / 2)
 
-#define FIL_SHIFT 3
-#define FIL_MASK 7 
+#define FIL_SHIFT 4
+#define FIL_MASK 15
 #define RNK_SHIFT 0
-#define RNK_MASK 7 
+#define RNK_MASK 15
 
 // -----------------------------------------------------------------------------
 // pieces
@@ -110,14 +110,6 @@ typedef enum {
 } pawn_ori_t;
 
 // -----------------------------------------------------------------------------
-// Bounds Checking Board 
-// -----------------------------------------------------------------------------
-#define INVALID_PIECE (INVALID << PTYPE_SHIFT)
-#define BOUNDS_BOARD_SIZE 256 
-
-extern piece_t bounds_board[BOUNDS_BOARD_SIZE];
-
-// -----------------------------------------------------------------------------
 // moves
 // -----------------------------------------------------------------------------
 
@@ -174,7 +166,6 @@ void set_ptype(piece_t *x, ptype_t pt);
 int ori_of(piece_t x);
 void set_ori(piece_t *x, int ori);
 void init_zob();
-void init_bounds_board();
 square_t square_of(fil_t f, rnk_t r);
 fil_t fil_of(square_t sq);
 rnk_t rnk_of(square_t sq);
