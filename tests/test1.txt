@@ -12,5 +12,5 @@ invoke = ../player/leiserchess
 depth = 3
 
 player = reference
-invoke = ../player/reference
+invoke = ../player/binaries/reference
 depth = 3
