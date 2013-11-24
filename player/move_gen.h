@@ -59,7 +59,7 @@ typedef int fil_t;
 
 #define PIECE_SIZE 5  // Number of bits in (ptype, color, orientation)
 
-typedef int piece_t;
+typedef uint8_t piece_t;
 
 // -----------------------------------------------------------------------------
 // piece types
@@ -113,7 +113,7 @@ typedef enum {
 // moves
 // -----------------------------------------------------------------------------
 
-#define KO (-1)  // returned by make move in illegal ko situation
+#define KO (1 << PIECE_SIZE)  // returned by make move in illegal ko situation
 
 // MOVE_MASK is 20 bits
 #define MOVE_MASK 0xfffff
