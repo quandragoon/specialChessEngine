@@ -79,15 +79,23 @@ uint32_t tt_get_num_of_records() {
   return hashtable.num_of_sets * RECORDS_PER_SET;
 }
 
+static inline uint64_t round_up_nearest_pow_of_2(uint64_t arg){
+  arg |= arg >> 1;
+  arg |= arg >> 2;
+  arg |= arg >> 4;
+  arg |= arg >> 8;
+  arg |= arg >> 16;
+  arg |= arg >> 32;
+  arg++;
+  return arg;
+}
+
 void tt_resize_hashtable(int size_in_meg) {
   uint64_t size_in_bytes = (uint64_t) size_in_meg * (1ULL << 20);
   // total number of sets we could have in the hashtable
   uint64_t num_of_sets = size_in_bytes / sizeof(ttSet_t);
 
-  uint64_t pow = 1;
-  num_of_sets--;
-  while (pow <= num_of_sets) pow *= 2;
-  num_of_sets = pow;
+  num_of_sets = round_up_nearest_pow_of_2(num_of_sets);
 
   hashtable.num_of_sets = num_of_sets;
   hashtable.mask = num_of_sets - 1;
