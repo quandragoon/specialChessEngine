@@ -24,7 +24,10 @@ leiserchess : $(OBJ) leiserchess.o
 	$(CXX) $(OBJ) leiserchess.o $(LDFLAGS) -o $@
 
 compare : clean leiserchess
-	bash -c "for i in {1..3}; do rm -f ../tests/test2.pgn; java -jar ../autotester/lauto.jar ../tests/test2.txt; ../tests/pgnrate.tcl ../tests/test2.pgn; done"
+	bash -c "for i in {1..3}; do rm -f ../tests/compare.pgn; java -jar ../autotester/lauto.jar ../tests/compare.txt; ../tests/pgnrate.tcl ../tests/compare.pgn; done"
+
+publish : clean leiserchess
+	bash -c "STAMP=\$$(date +%s); cp leiserchess binaries/build-\$${STAMP}; sed -i 's/^\(invoke.*\/binaries\/\).*$$/\1build-'\$${STAMP}'/' ../tests/compare.txt"
 
 clean :
 	rm -f *.o *~ $(TARGET)

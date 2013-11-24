@@ -12,5 +12,5 @@ invoke = ../player/leiserchess
 fis = 3 0
 
 player = reference
-invoke = ../player/binaries/optimized_sort
+invoke = ../player/binaries/build-1385272127
 fis = 3 0
