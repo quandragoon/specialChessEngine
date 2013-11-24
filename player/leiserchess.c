@@ -498,11 +498,10 @@ int main(int argc, char *argv[]) {
       }
 
       if (strcmp(tok[0], "move") == 0) {
-        piece_t victim = make_from_string(&gme[ix], &gme[ix+1], tok[1]);
         if (token_count < 2) {  // no input
-          fprintf(OUT, "Second argument (move positon) required.\n");
-          continue;
+          tok[1] = theMove;
         }
+        piece_t victim = make_from_string(&gme[ix], &gme[ix+1], tok[1]);
         if (victim == KO) {
           fprintf(OUT, "Illegal move %s\n", tok[1]);
         } else {
