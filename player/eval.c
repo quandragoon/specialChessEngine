@@ -222,34 +222,47 @@ float h_dist(square_t a, square_t b) {
 }
 
 int h_squares_attackable(position_t *p, color_t c) {
-  char laser_map[ARR_SIZE];
-
-  for (int i = 0; i < ARR_SIZE; ++i) {
-    laser_map[i] = 4;   // Invalid square
-  }
-
-  for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
-    for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
-      laser_map[square_of(f, r)] = 0;
-    }
-  }
-
-  mark_laser_path(p, laser_map, c, 1);  // 1 = path of laser with no moves
+  float h_attackable = 0;
+  square_t sq = p->kloc[c];
+  assert(ptype_of(p->board[sq]) == KING);
+  int bdir = ori_of(p->board[sq]);
 
   square_t o_king_sq = p->kloc[opp_color(c)];
   assert(ptype_of(p->board[o_king_sq]) == KING);
   assert(color_of(p->board[o_king_sq]) != c);
+  h_attackable += h_dist(sq, o_king_sq);
 
-  float h_attackable = 0;
-  for (fil_t f = 0; f < BOARD_WIDTH; f++) {
-    for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
-      square_t sq = square_of(f, r);
-      if (laser_map[sq] != 0) {
-        h_attackable += h_dist(sq, o_king_sq);
+  // Move all logic from mark_laser_path here
+  // to avoid the O(n^2) algorithm. Instead of
+  // saving in laser_map, we compute on the fly
+  // using the same switch statement logic.
+  while (true) {
+    sq += beam_of(bdir);
+    assert(sq < ARR_SIZE && sq >= 0);
+
+    switch (ptype_of(p->board[sq])) {
+     case EMPTY:  // empty square
+      h_attackable += h_dist(sq, o_king_sq);
+      break;
+     case PAWN:  // Pawn
+      h_attackable += h_dist(sq, o_king_sq);
+      bdir = reflect_of(bdir, ori_of(p->board[sq]));
+      if (bdir < 0) {  // Hit back of Pawn
+        return h_attackable;
       }
+      break;
+     case KING:  // King
+      h_attackable += h_dist(sq, o_king_sq);
+      return h_attackable;  // sorry, game over my friend!
+      break;
+     case INVALID:  // Ran off edge of board
+      return h_attackable;
+      break;
+     default:  // Shouldna happen, man!
+      assert(false);
+      break;
     }
   }
-  return h_attackable;
 }
 
 // Static evaluation.  Returns score

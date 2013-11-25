@@ -145,7 +145,6 @@ square_t square_of(fil_t f, rnk_t r) {
   assert((s >= 0) && (s < ARR_SIZE));
   return s;
 }
-*/
 
 fil_t fil_of(square_t sq) {
   fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
@@ -158,6 +157,7 @@ rnk_t rnk_of(square_t sq) {
   DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
   return r;
 }
+*/
 
 // converts a square to string notation, returns number of characters printed
 int square_to_str(square_t sq, char *buf) {

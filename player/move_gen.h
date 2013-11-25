@@ -166,8 +166,6 @@ void set_ptype(piece_t *x, ptype_t pt);
 int ori_of(piece_t x);
 void set_ori(piece_t *x, int ori);
 void init_zob();
-fil_t fil_of(square_t sq);
-rnk_t rnk_of(square_t sq);
 int square_to_str(square_t sq, char *buf);
 int dir_of(int i);
 int beam_of(int direction);
@@ -193,6 +191,18 @@ static inline square_t square_of(fil_t f, rnk_t r) {
   DEBUG_LOG(1, "Square of (file %d, rank %d) is %d\n", f, r, s);
   assert((s >= 0) && (s < ARR_SIZE));
   return s;
+}
+
+static inline fil_t fil_of(square_t sq) {
+  fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
+  DEBUG_LOG(1, "File of square %d is %d\n", sq, f);
+  return f;
+}
+
+static inline rnk_t rnk_of(square_t sq) {
+  rnk_t r = ((sq >> RNK_SHIFT) & RNK_MASK) - RNK_ORIGIN;
+  DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
+  return r;
 }
 
 static inline color_t color_of(piece_t x) {
