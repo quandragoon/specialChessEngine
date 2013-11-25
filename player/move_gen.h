@@ -160,7 +160,6 @@ typedef struct position {
 
 char * color_to_str(color_t c);
 color_t color_to_move_of(position_t *p);
-color_t color_of(piece_t x);
 color_t opp_color(color_t c);
 void set_color(piece_t *x, color_t c);
 void set_ptype(piece_t *x, ptype_t pt);
@@ -194,6 +193,10 @@ static inline square_t square_of(fil_t f, rnk_t r) {
   DEBUG_LOG(1, "Square of (file %d, rank %d) is %d\n", f, r, s);
   assert((s >= 0) && (s < ARR_SIZE));
   return s;
+}
+
+static inline color_t color_of(piece_t x) {
+  return (color_t) ((x >> COLOR_SHIFT) & COLOR_MASK);
 }
 
 static inline ptype_t ptype_of(piece_t x) {
