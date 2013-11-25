@@ -193,16 +193,33 @@ static inline square_t square_of(fil_t f, rnk_t r) {
   return s;
 }
 
+
+static fil_t fil_arr[] = {-1, 
+  -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 
+  5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 
+  7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+
+static rnk_t rnk_arr[] = {-1, 
+  0, 1, 2, 3, 4, 5, 6, 7, 8, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, -1, 
+  0, 1, 2, 3, 4, 5, 6, 7, 8, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, -1, 
+  0, 1, 2, 3, 4, 5, 6, 7, 8, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, -1, 
+  0, 1, 2, 3, 4, 5, 6, 7, 8, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, -1, 
+  0, 1, 2, 3, 4, 5, 6, 7, 8, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8};
+
 static inline fil_t fil_of(square_t sq) {
   // fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
-  fil_t f = sq / ARR_WIDTH - FIL_ORIGIN;
+  // fil_t f = sq / ARR_WIDTH - FIL_ORIGIN;
+  fil_t f = fil_arr[sq];
   DEBUG_LOG(1, "File of square %d is %d\n", sq, f);
   return f;
 }
 
 static inline rnk_t rnk_of(square_t sq) {
   // rnk_t r = ((sq >> RNK_SHIFT) & RNK_MASK) - RNK_ORIGIN;
-  rnk_t r = sq % ARR_WIDTH - RNK_ORIGIN;
+  // rnk_t r = sq % ARR_WIDTH - RNK_ORIGIN;
+  rnk_t r = rnk_arr[sq];
   DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
   return r;
 }
