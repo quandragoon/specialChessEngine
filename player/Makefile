@@ -23,6 +23,9 @@ LDFLAGS= -Wall -lrt -lm -lcilkrts -ldl
 leiserchess : $(OBJ) leiserchess.o
 	$(CXX) $(OBJ) leiserchess.o $(LDFLAGS) -o $@
 
+time : clean leiserchess
+	bash -c "LATEST=\$$(cat ../tests/compare.txt | perl -n -e'/player\/binaries\/(build-\d+)/ && print \$$1'); time ./leiserchess < tester.txt; time binaries/\$${LATEST} < tester.txt" 
+
 compare : clean leiserchess
 	bash -c "for i in {1..3}; do rm -f ../tests/compare.pgn; java -jar ../autotester/lauto.jar ../tests/compare.txt; ../tests/pgnrate.tcl ../tests/compare.pgn; done"
 
