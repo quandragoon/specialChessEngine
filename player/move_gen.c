@@ -72,9 +72,11 @@ void set_color(piece_t *x, color_t c) {
         (*x & ~(COLOR_MASK << COLOR_SHIFT));
 }
 
+/*
 ptype_t ptype_of(piece_t x) {
   return (ptype_t) ((x >> PTYPE_SHIFT) & PTYPE_MASK);
 }
+*/
 
 void set_ptype(piece_t *x, ptype_t pt) {
   *x = ((pt & PTYPE_MASK) << PTYPE_SHIFT) |
