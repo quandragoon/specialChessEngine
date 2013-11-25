@@ -37,7 +37,7 @@
 #define MAX_CHARS_IN_TOKEN 64
 
 // the board (which is 8x8 or 10x10) is centered in a 16x16 array
-#define ARR_WIDTH 16
+#define ARR_WIDTH 10
 #define ARR_SIZE (ARR_WIDTH * ARR_WIDTH)
 
 // board is 8 x 8 or 10 x 10
@@ -194,13 +194,15 @@ static inline square_t square_of(fil_t f, rnk_t r) {
 }
 
 static inline fil_t fil_of(square_t sq) {
-  fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
+  // fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
+  fil_t f = sq / ARR_WIDTH - FIL_ORIGIN;
   DEBUG_LOG(1, "File of square %d is %d\n", sq, f);
   return f;
 }
 
 static inline rnk_t rnk_of(square_t sq) {
-  rnk_t r = ((sq >> RNK_SHIFT) & RNK_MASK) - RNK_ORIGIN;
+  // rnk_t r = ((sq >> RNK_SHIFT) & RNK_MASK) - RNK_ORIGIN;
+  rnk_t r = sq % ARR_WIDTH - RNK_ORIGIN;
   DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
   return r;
 }
