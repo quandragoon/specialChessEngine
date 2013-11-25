@@ -176,7 +176,14 @@ int mobility(position_t *p, color_t color) {
 
   if (!INIT_MAP) {
     for (int i = 0; i < ARR_SIZE; ++i) {
-      neighbor_map[i] = 0;   // Initialize map
+      neighbor_map[i] = 2;   // Initialize invalid spaces.
+    }
+    for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
+      for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
+        // Initialize valid spaces to differentiate
+        // between valid and invalid.
+        neighbor_map[square_of(f, r)] = 0;
+      }
     }
     INIT_MAP = true;
   }
@@ -187,11 +194,17 @@ int mobility(position_t *p, color_t color) {
   assert(ptype_of(p->board[king_sq]) == KING);
   assert(color_of(p->board[king_sq]) == color);
 
-  int mobility = 9;
+  int mobility = 0;
   neighbor_map[king_sq] = 1;
   for (int d = 0; d < 8; ++d) {
     square_t neighbor = king_sq + dir_of(d);
-    neighbor_map[neighbor] = 1;
+    // Check if the neighbor is a valid square.
+    if (neighbor_map[neighbor] == 0) {
+      // Mark as a neighbor and add that to number
+      // of valid spaces that a king can move to.
+      neighbor_map[neighbor] = 1;
+      mobility++;
+    }
   }
 
   // Fire laser and check if we hit any of the
