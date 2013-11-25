@@ -31,6 +31,8 @@
 // -----------------------------------------------------------------------------
 
 typedef int32_t ev_score_t;  // Static evaluator uses "hi res" values
+char neighbor_map[ARR_SIZE];
+bool INIT_MAP = false;
 
 int RANDOMIZE;
 
@@ -160,21 +162,24 @@ void mark_laser_path(position_t *p, char *laser_map, color_t c,
   }
 }
 
+void reset_neighbors(position_t *p, color_t color) {
+  square_t king_sq = p->kloc[color];
+  neighbor_map[king_sq] = 0;
+  for (int d = 0; d < 8; ++d) {
+    square_t neighbor = king_sq + dir_of(d);
+    neighbor_map[neighbor] = 0;
+  }
+}
+
 int mobility(position_t *p, color_t color) {
   color_t c = opp_color(color);
-  char laser_map[ARR_SIZE];
 
-  for (int i = 0; i < ARR_SIZE; ++i) {
-    laser_map[i] = 4;   // Invalid square
-  }
-
-  for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
-    for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
-      laser_map[square_of(f, r)] = 0;
+  if (!INIT_MAP) {
+    for (int i = 0; i < ARR_SIZE; ++i) {
+      neighbor_map[i] = 0;   // Initialize map
     }
+    INIT_MAP = true;
   }
-
-  mark_laser_path(p, laser_map, c, 1);  // 1 = path of laser with no moves
 
   // mobility = # safe squares around enemy king
 
@@ -182,17 +187,56 @@ int mobility(position_t *p, color_t color) {
   assert(ptype_of(p->board[king_sq]) == KING);
   assert(color_of(p->board[king_sq]) == color);
 
-  int mobility = 0;
-  if (laser_map[king_sq] == 0) {
-    mobility++;
-  }
+  int mobility = 9;
+  neighbor_map[king_sq] = 1;
   for (int d = 0; d < 8; ++d) {
-    square_t sq = king_sq + dir_of(d);
-    if (laser_map[sq] == 0) {
-      mobility++;
+    square_t neighbor = king_sq + dir_of(d);
+    neighbor_map[neighbor] = 1;
+  }
+
+  // Fire laser and check if we hit any of the
+  // neighboring positions.
+  // Mimic the functionality of mark_laser_path
+  // except we eliminated some extra work of
+  // saving vals and initializing the map
+  // every time.
+  square_t sq = p->kloc[c];
+  int bdir = ori_of(p->board[sq]);
+
+  assert(ptype_of(p->board[sq]) == KING);
+
+  while (true) {
+    sq += beam_of(bdir);
+    assert(sq < ARR_SIZE && sq >= 0);
+    if (neighbor_map[sq] == 1) {
+      mobility--;
+    }
+    assert(mobility >= 0);
+    switch (ptype_of(p->board[sq])) {
+     case EMPTY:  // empty square
+      break;
+     case PAWN:  // Pawn
+      bdir = reflect_of(bdir, ori_of(p->board[sq]));
+      if (bdir < 0) {  // Hit back of Pawn
+        // Resets opposing king's neighbor spaces to 0 in
+        // global map.
+        reset_neighbors(p, color);
+        return mobility;
+      }
+      break;
+     case KING:  // King
+      reset_neighbors(p, color);
+      return mobility;  // sorry, game over my friend!
+      break;
+     case INVALID:  // Ran off edge of board
+      reset_neighbors(p, color);
+      return mobility;
+      break;
+     default:  // Shouldna happen, man!
+      assert(false);
+      break;
     }
   }
-  return mobility;
 }
 
 static float distances[] = {
