@@ -133,7 +133,7 @@ void init_zob() {
   zob_color = myrand();
 }
 
-
+/*
 // For no square, use 0, which is guaranteed to be off board
 square_t square_of(fil_t f, rnk_t r) {
   square_t s = ARR_WIDTH * (FIL_ORIGIN + f) + RNK_ORIGIN + r;
@@ -141,6 +141,7 @@ square_t square_of(fil_t f, rnk_t r) {
   assert((s >= 0) && (s < ARR_SIZE));
   return s;
 }
+*/
 
 fil_t fil_of(square_t sq) {
   fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;

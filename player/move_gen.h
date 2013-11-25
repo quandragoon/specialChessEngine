@@ -25,6 +25,8 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <assert.h>
+#include "util.h" 
 
 #define MAX_NUM_MOVES 100      // real number = 7 x (8 + 3) + 1 x (8 + 4) = 89
 #define MAX_PLY_IN_SEARCH 100  // up to 100 ply
@@ -166,7 +168,6 @@ void set_ptype(piece_t *x, ptype_t pt);
 int ori_of(piece_t x);
 void set_ori(piece_t *x, int ori);
 void init_zob();
-square_t square_of(fil_t f, rnk_t r);
 fil_t fil_of(square_t sq);
 rnk_t rnk_of(square_t sq);
 int square_to_str(square_t sq, char *buf);
@@ -186,5 +187,14 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv);
 piece_t make_move(position_t *old, position_t *p, move_t mv);
 void display(position_t *p);
 uint64_t compute_zob_key(position_t *p);
+
+// Inline functions
+
+static inline square_t square_of(fil_t f, rnk_t r) {
+  square_t s = ARR_WIDTH * (FIL_ORIGIN + f) + RNK_ORIGIN + r;
+  DEBUG_LOG(1, "Square of (file %d, rank %d) is %d\n", f, r, s);
+  assert((s >= 0) && (s < ARR_SIZE));
+  return s;
+}
 
 #endif  // MOVE_GEN_H

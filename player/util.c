@@ -48,9 +48,7 @@ double milliseconds() {
 
   return result;
 }
-
-// Public domain code for JLKISS64 RNG - long period KISS RNG producing
-// 64-bit results
+/*
 uint64_t myrand() {
   static int first_time = 0;
   // Seed variables
@@ -87,4 +85,5 @@ uint64_t myrand() {
 
   return x + y + z1 + ((uint64_t)z2 << 32);  // Return 64-bit result
 }
+*/
 
