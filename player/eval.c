@@ -195,6 +195,7 @@ int mobility(position_t *p, color_t color) {
   return mobility;
 }
 
+// Array for harmonic distances (maps inputs square_t a and square_t b to h_dist)
 static float distances[] = {
   0.25, 0.268, 0.292, 0.325, 0.375, 0.458, 0.625, 1.125, 0.625, 0.458, 0.375, 0.325, 0.292, 0.268, 0.25,
   0.268, 0.286, 0.31, 0.343, 0.393, 0.476, 0.643, 1.143, 0.643, 0.476, 0.393, 0.343, 0.31, 0.286, 0.268,

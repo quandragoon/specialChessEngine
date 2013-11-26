@@ -210,16 +210,12 @@ static rnk_t rnk_arr[] = {
 };
 
 static inline fil_t fil_of(square_t sq) {
-  // fil_t f = ((sq >> FIL_SHIFT) & FIL_MASK) - FIL_ORIGIN;
-  // fil_t f = sq / ARR_WIDTH - FIL_ORIGIN;
   fil_t f = fil_arr[sq];
   DEBUG_LOG(1, "File of square %d is %d\n", sq, f);
   return f;
 }
 
 static inline rnk_t rnk_of(square_t sq) {
-  // rnk_t r = ((sq >> RNK_SHIFT) & RNK_MASK) - RNK_ORIGIN;
-  // rnk_t r = sq % ARR_WIDTH - RNK_ORIGIN;
   rnk_t r = rnk_arr[sq];
   DEBUG_LOG(1, "Rank of square %d is %d\n", sq, r);
   return r;
