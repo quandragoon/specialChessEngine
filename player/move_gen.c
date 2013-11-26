@@ -53,6 +53,14 @@ color_t color_to_move_of(position_t *p) {
   }
 }
 
+/*
+color_t color_of(piece_t x) {
+  return (color_t) ((x >> COLOR_SHIFT) & COLOR_MASK);
+}
+*/
+
+/*
+
 color_t opp_color(color_t c) {
   if (c == WHITE) {
     return BLACK;
@@ -60,7 +68,7 @@ color_t opp_color(color_t c) {
     return WHITE;
   }
 }
-
+*/
 
 void set_color(piece_t *x, color_t c) {
   assert((c >= 0) & (c <= COLOR_MASK));

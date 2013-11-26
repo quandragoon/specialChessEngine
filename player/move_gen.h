@@ -169,7 +169,6 @@ typedef struct position {
 
 char * color_to_str(color_t c);
 color_t color_to_move_of(position_t *p);
-color_t opp_color(color_t c);
 void set_color(piece_t *x, color_t c);
 void set_ptype(piece_t *x, ptype_t pt);
 void set_ind(piece_t *x, int index);
@@ -242,6 +241,9 @@ static inline ptype_t ptype_of(piece_t x) {
 static inline int index_of(piece_t x) {
   int index =  (int) ((x >> INDEX_SHIFT));
   return index;
+
+static inline color_t opp_color(color_t c){
+    return !c;
 }
 
 #endif  // MOVE_GEN_H

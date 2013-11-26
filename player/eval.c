@@ -56,13 +56,12 @@ int MOBILITY;
 // Heuristics for static evaluation
 
 // returns true if c lies on or between a and b, which are not ordered
-bool between(int c, int a, int b) {
-  bool x = ((c >= a) && (c <= b)) || ((c <= a) && (c >= b));
-  return x;
+static inline bool between(int c, int a, int b) {
+  return ((c >= a) && (c <= b)) || ((c <= a) && (c >= b));
 }
 
 // PBETWEEN heuristic: Bonus for Pawn at (f, r) in rectangle defined by Kings at the corners
-ev_score_t pbetween(position_t *p, fil_t f, rnk_t r) {
+static inline ev_score_t pbetween(position_t *p, fil_t f, rnk_t r) {
   bool is_between =
       between(f, fil_of(p->kloc[WHITE]), fil_of(p->kloc[BLACK])) &&
       between(r, rnk_of(p->kloc[WHITE]), rnk_of(p->kloc[BLACK]));
