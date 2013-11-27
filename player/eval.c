@@ -31,8 +31,19 @@
 // -----------------------------------------------------------------------------
 
 typedef int32_t ev_score_t;  // Static evaluator uses "hi res" values
-char neighbor_map[ARR_SIZE];
-bool INIT_MAP = false;
+
+static char neighbor_map[ARR_SIZE] = {
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+  2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+  2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+  2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+  2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+  2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+  2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+  2, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+};
 
 int RANDOMIZE;
 
@@ -167,26 +178,14 @@ void reset_neighbors(position_t *p, color_t color) {
   neighbor_map[king_sq] = 0;
   for (int d = 0; d < 8; ++d) {
     square_t neighbor = king_sq + dir_of(d);
-    neighbor_map[neighbor] = 0;
+    char mask = -1;
+    mask <<= 1;
+    neighbor_map[neighbor] &= mask;
   }
 }
 
 int mobility(position_t *p, color_t color) {
   color_t c = opp_color(color);
-
-  if (!INIT_MAP) {
-    for (int i = 0; i < ARR_SIZE; ++i) {
-      neighbor_map[i] = 2;   // Initialize invalid spaces.
-    }
-    for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
-      for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
-        // Initialize valid spaces to differentiate
-        // between valid and invalid.
-        neighbor_map[square_of(f, r)] = 0;
-      }
-    }
-    INIT_MAP = true;
-  }
 
   // mobility = # safe squares around enemy king
 
@@ -196,15 +195,11 @@ int mobility(position_t *p, color_t color) {
 
   int mobility = 0;
   neighbor_map[king_sq] = 1;
+  char mask = 1; 
   for (int d = 0; d < 8; ++d) {
     square_t neighbor = king_sq + dir_of(d);
-    // Check if the neighbor is a valid square.
-    if (neighbor_map[neighbor] == 0) {
-      // Mark as a neighbor and add that to number
-      // of valid spaces that a king can move to.
-      neighbor_map[neighbor] = 1;
-      mobility++;
-    }
+    neighbor_map[neighbor] |= mask;
+    mobility += neighbor_map[neighbor] == 1;
   }
 
   // Fire laser and check if we hit any of the
@@ -221,9 +216,7 @@ int mobility(position_t *p, color_t color) {
   while (true) {
     sq += beam_of(bdir);
     assert(sq < ARR_SIZE && sq >= 0);
-    if (neighbor_map[sq] == 1) {
-      mobility--;
-    }
+    mobility -= neighbor_map[sq] == 1;
     assert(mobility >= 0);
     switch (ptype_of(p->board[sq])) {
      case EMPTY:  // empty square
