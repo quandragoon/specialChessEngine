@@ -135,44 +135,6 @@ ev_score_t kaggressive(position_t *p, fil_t f, rnk_t r) {
   return (KAGGRESSIVE * bonus) / (BOARD_WIDTH * BOARD_WIDTH);
 }
 
-void mark_laser_path(position_t *p, char *laser_map, color_t c,
-                     char mark_mask) {
-  position_t np = *p;
-
-  // Fire laser, recording in laser_map
-  square_t sq = np.kloc[c];
-  int bdir = ori_of(np.board[sq]);
-
-  assert(ptype_of(np.board[sq]) == KING);
-  laser_map[sq] |= mark_mask;
-
-  while (true) {
-    sq += beam_of(bdir);
-    laser_map[sq] |= mark_mask;
-    assert(sq < ARR_SIZE && sq >= 0);
-
-    switch (ptype_of(p->board[sq])) {
-     case EMPTY:  // empty square
-      break;
-     case PAWN:  // Pawn
-      bdir = reflect_of(bdir, ori_of(p->board[sq]));
-      if (bdir < 0) {  // Hit back of Pawn
-        return;
-      }
-      break;
-     case KING:  // King
-      return;  // sorry, game over my friend!
-      break;
-     case INVALID:  // Ran off edge of board
-      return;
-      break;
-     default:  // Shouldna happen, man!
-      assert(false);
-      break;
-    }
-  }
-}
-
 void reset_neighbors(position_t *p, color_t color) {
   square_t king_sq = p->kloc[color];
   neighbor_map[king_sq] = 0;
