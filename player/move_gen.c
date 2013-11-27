@@ -53,12 +53,6 @@ color_t color_to_move_of(position_t *p) {
   }
 }
 
-/*
-color_t color_of(piece_t x) {
-  return (color_t) ((x >> COLOR_SHIFT) & COLOR_MASK);
-}
-*/
-
 color_t opp_color(color_t c) {
   if (c == WHITE) {
     return BLACK;
@@ -73,12 +67,6 @@ void set_color(piece_t *x, color_t c) {
   *x = ((c & COLOR_MASK) << COLOR_SHIFT) |
         (*x & ~(COLOR_MASK << COLOR_SHIFT));
 }
-
-/*
-ptype_t ptype_of(piece_t x) {
-  return (ptype_t) ((x >> PTYPE_SHIFT) & PTYPE_MASK);
-}
-*/
 
 void set_ptype(piece_t *x, ptype_t pt) {
   *x = ((pt & PTYPE_MASK) << PTYPE_SHIFT) |
