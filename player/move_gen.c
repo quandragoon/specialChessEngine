@@ -73,6 +73,11 @@ void set_ptype(piece_t *x, ptype_t pt) {
         (*x & ~(PTYPE_MASK << PTYPE_SHIFT));
 }
 
+void set_ind(piece_t *x, int index) {
+  *x = ((index & INDEX_MASK) << INDEX_SHIFT) | 
+        (*x & ~(INDEX_MASK << INDEX_SHIFT));
+}
+
 int ori_of(piece_t x) {
   return (x >> ORI_SHIFT) & ORI_MASK;
 }
@@ -386,29 +391,19 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
     p->key ^= zob[to_sq][from_piece];  // place from_piece in to_sq
     p->key ^= zob[from_sq][to_piece];  // place to_piece in from_sq
 
-    // Update King locations if necessary
+    // Update locations in pawn/king lookup arrays if necessary
     if (ptype_of(from_piece) == KING) {
       p->kloc[color_of(from_piece)] = to_sq;
     } else if (ptype_of(from_piece) == PAWN) {
       int start_index = 6 * color_of(from_piece);
-      for (int i = 0; i < 6; ++i) {
-        if (p->pawns[start_index + i] == from_sq) {
-          p->pawns[start_index + i] = to_sq;
-          break;
-        }
-      }
+      p->pawns[start_index + index_of(from_piece)] = to_sq;
     }
 
     if (ptype_of(to_piece) == KING) {
       p->kloc[color_of(to_piece)] = from_sq;
     } else if (ptype_of(to_piece) == PAWN) {
       int start_index = 6 * color_of(to_piece);
-      for (int i = 0; i < 6; ++i) {
-        if (p->pawns[start_index + i] == to_sq) {
-          p->pawns[start_index + i] = from_sq;
-          break;
-        }
-      }
+      p->pawns[start_index + index_of(to_piece)] = from_sq;
     }
 
   } else {  // rotation
@@ -500,12 +495,7 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
     if (ptype_of(p->victim) == PAWN) {
       color_t col = color_of(p->victim);
       int start_index = 6 * col;
-      for (int i = 0; i < 6; ++i) {
-        if (p->pawns[start_index + i] == victim_sq) {
-          p->pawns[start_index + i] = -1;
-          break;
-        }
-      }
+      p->pawns[start_index + index_of(p->victim)] = -1;
     }
 
     assert(p->key == compute_zob_key(p));
@@ -550,10 +540,7 @@ static uint64_t perft_search(position_t *p, int depth, int ply) {
       if (typ == PAWN) {
         color_t col = color_of(np.board[victim_sq]);
         int start_index = col * 6;
-        for (int j = 0; j < 6; ++j) {
-          if (np.pawns[start_index + j] == victim_sq)
-            np.pawns[start_index + j] = -1;
-        }
+        np.pawns[start_index + index_of(np.board[victim_sq])] = -1;
       } else if (typ == KING) {  // do not expand further: hit a King
         node_count++;
         continue;

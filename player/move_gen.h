@@ -112,6 +112,13 @@ typedef enum {
 } pawn_ori_t;
 
 // -----------------------------------------------------------------------------
+// Index information
+// -----------------------------------------------------------------------------
+
+#define INDEX_SHIFT 5
+#define INDEX_MASK 7
+
+// -----------------------------------------------------------------------------
 // moves
 // -----------------------------------------------------------------------------
 
@@ -164,6 +171,7 @@ color_t color_to_move_of(position_t *p);
 color_t opp_color(color_t c);
 void set_color(piece_t *x, color_t c);
 void set_ptype(piece_t *x, ptype_t pt);
+void set_ind(piece_t *x, int index);
 int ori_of(piece_t x);
 void set_ori(piece_t *x, int ori);
 void init_zob();
@@ -228,6 +236,11 @@ static inline color_t color_of(piece_t x) {
 
 static inline ptype_t ptype_of(piece_t x) {
   return (ptype_t) ((x >> PTYPE_SHIFT) & PTYPE_MASK);
+}
+
+static inline int index_of(piece_t x) {
+  int index =  (int) ((x >> INDEX_SHIFT));
+  return index;
 }
 
 #endif  // MOVE_GEN_H

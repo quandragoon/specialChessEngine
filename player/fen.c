@@ -375,14 +375,16 @@ int fen_to_pos(position_t *p, char *fen) {
   for (fil_t f = 0; f < BOARD_WIDTH; ++f) {
     for (rnk_t r = 0; r < BOARD_WIDTH; ++r) {
       square_t sq = square_of(f, r);
-      piece_t x = p->board[sq];
-      ptype_t typ = ptype_of(x);
+      piece_t* x = &p->board[sq];
+      ptype_t typ = ptype_of(*x);
+      color_t col = color_of(*x);
       if (typ == KING) {
-        Kings[color_of(x)]++;
-        p->kloc[color_of(x)] = sq;
+        Kings[col]++;
+        p->kloc[col] = sq;
       } else if (typ == PAWN) {
-        p->pawns[(6 * color_of(x)) + Pawns[color_of(x)]] = sq;
-        Pawns[color_of(x)]++;
+        p->pawns[(6 * col) + Pawns[col]] = sq;
+        set_ind(x, Pawns[col]);
+        Pawns[col]++;
       }
     }
   }
