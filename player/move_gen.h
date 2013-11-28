@@ -152,6 +152,7 @@ typedef struct position {
   move_t       last_move;        // move that led to this position
   piece_t      victim;           // piece destroyed by shooter
   square_t     kloc[2];          // location of kings
+  square_t     pawns[12];        // location of pawns
 } position_t;
 
 // -----------------------------------------------------------------------------

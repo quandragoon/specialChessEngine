@@ -231,59 +231,83 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
   color_t ctm = color_to_move_of(p);
   int move_count = 0;
 
-  for (fil_t f = 0; f < BOARD_WIDTH; f++) {
-    for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
-      square_t  sq = square_of(f, r);
-      piece_t x = p->board[sq];
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 6; ++j) {
+      printf("%d ", p->pawns[i*6 + j]);
+    }
+    printf("\n");
+  }
+  printf("\n");
 
-      ptype_t typ = ptype_of(x);
-      color_t color = color_of(x);
+  for (int i = 0; i < 6; ++i) {
+    square_t  sq = p->pawns[(6 * ctm) + i];
+    if (sq < 0)
+      continue;
 
-      switch (typ) {
-       case EMPTY:
-        break;
-       case PAWN:
-       case KING:
-        if (color != ctm) {  // Wrong color
-          break;
-        }
-        // directions
-        for (int d = 0; d < 8; d++) {
-          int dest = sq + dir_of(d);
-          if (ptype_of(p->board[dest]) == INVALID) {
-            continue;    // illegal square
-          }
+    assert(ptype_of(p->board[sq]) == PAWN);
+    assert(color_of(p->board[sq]) == ctm);
 
-          WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
-          WHEN_DEBUG_VERBOSE({
-            move_to_str(move_of(typ, (rot_t) 0, sq, dest), buf);
-            DEBUG_LOG(1, "Before: %s ", buf);
-          })
-          assert(move_count < MAX_NUM_MOVES);
-          sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, dest);
-
-          WHEN_DEBUG_VERBOSE({
-            move_to_str(get_move(sortable_move_list[move_count-1]), buf);
-            DEBUG_LOG(1, "After: %s\n", buf);
-          })
-        }
-
-        // rotations - three directions possible
-        for (int rot = 1; rot < 4; ++rot) {
-          assert(move_count < MAX_NUM_MOVES);
-          sortable_move_list[move_count++] = move_of(typ, (rot_t) rot, sq, sq);
-        }
-        if (typ == KING) {  // Also generate null move
-          assert(move_count < MAX_NUM_MOVES);
-          sortable_move_list[move_count++] = move_of(typ, (rot_t) 0, sq, sq);
-        }
-        break;
-       case INVALID:
-       default:
-        assert(false);  // Couldn't BE more bogus!
+    // directions
+    for (int d = 0; d < 8; d++) {
+      int dest = sq + dir_of(d);
+      if (ptype_of(p->board[dest]) == INVALID) {
+        continue;    // illegal square
       }
+
+      WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
+      WHEN_DEBUG_VERBOSE({
+        move_to_str(move_of(PAWN, (rot_t) 0, sq, dest), buf);
+        DEBUG_LOG(1, "Before: %s ", buf);
+      })
+      assert(move_count < MAX_NUM_MOVES);
+      sortable_move_list[move_count++] = move_of(PAWN, (rot_t) 0, sq, dest);
+
+      WHEN_DEBUG_VERBOSE({
+        move_to_str(get_move(sortable_move_list[move_count-1]), buf);
+        DEBUG_LOG(1, "After: %s\n", buf);
+      })
+    }
+
+    // rotations - three directions possible
+    for (int rot = 1; rot < 4; ++rot) {
+      assert(move_count < MAX_NUM_MOVES);
+      sortable_move_list[move_count++] = move_of(PAWN, (rot_t) rot, sq, sq);
     }
   }
+
+  square_t sq = p->kloc[ctm];
+
+  assert(ptype_of(p->board[sq]) == KING);
+  assert(color_of(p->board[sq]) == ctm);
+  // directions
+        
+  for (int d = 0; d < 8; d++) {
+    int dest = sq + dir_of(d);
+    if (ptype_of(p->board[dest]) == INVALID) {
+      continue;    // illegal square
+    }
+
+    WHEN_DEBUG_VERBOSE( char buf[MAX_CHARS_IN_MOVE]; )
+    WHEN_DEBUG_VERBOSE({
+      move_to_str(move_of(KING, (rot_t) 0, sq, dest), buf);
+      DEBUG_LOG(1, "Before: %s ", buf);
+    })
+    assert(move_count < MAX_NUM_MOVES);
+    sortable_move_list[move_count++] = move_of(KING, (rot_t) 0, sq, dest);
+
+    WHEN_DEBUG_VERBOSE({
+      move_to_str(get_move(sortable_move_list[move_count-1]), buf);
+      DEBUG_LOG(1, "After: %s\n", buf);
+    })
+  }
+
+  // rotations - three directions possible
+  for (int rot = 1; rot < 4; ++rot) {
+    assert(move_count < MAX_NUM_MOVES);
+    sortable_move_list[move_count++] = move_of(KING, (rot_t) rot, sq, sq);
+  }
+  assert(move_count < MAX_NUM_MOVES);
+  sortable_move_list[move_count++] = move_of(KING, (rot_t) 0, sq, sq);
 
   WHEN_DEBUG_VERBOSE({
     DEBUG_LOG(1, "\nGenerated moves: ");
@@ -373,12 +397,29 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
     // Update King locations if necessary
     if (ptype_of(from_piece) == KING) {
       p->kloc[color_of(from_piece)] = to_sq;
+    } else if (ptype_of(from_piece) == PAWN) {
+      int start_index = 6 * color_of(from_piece);
+      for (int i = 0; i < 6; ++i) {
+        if (p->pawns[start_index + i] == from_sq) {
+          p->pawns[start_index + i] = to_sq;
+          break;
+        }
+      }
     }
+
     if (ptype_of(to_piece) == KING) {
       p->kloc[color_of(to_piece)] = from_sq;
+    } else if (ptype_of(to_piece) == PAWN) {
+      int start_index = 6 * color_of(to_piece);
+      for (int i = 0; i < 6; ++i) {
+        if (p->pawns[start_index + i] == to_sq) {
+          p->pawns[start_index + i] = from_sq;
+          break;
+        }
+      }
     }
-  } else {  // rotation
 
+  } else {  // rotation
     // remove from_piece from from_sq in hash
     p->key ^= zob[from_sq][from_piece];
     set_ori(&from_piece, rot + ori_of(from_piece));  // rotate from_piece
@@ -464,6 +505,17 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
     p->board[victim_sq] = 0;
     p->key ^= zob[victim_sq][0];
 
+    if (ptype_of(p->victim) == PAWN) {
+      color_t col = color_of(p->victim);
+      int start_index = 6 * col;
+      for (int i = 0; i < 6; ++i) {
+        if (p->pawns[start_index + i] == victim_sq) {
+          p->pawns[start_index + i] = -1;
+          break;
+        }
+      }
+    }
+
     assert(p->key == compute_zob_key(p));
 
     WHEN_DEBUG_VERBOSE({
@@ -503,7 +555,14 @@ static uint64_t perft_search(position_t *p, int depth, int ply) {
     if (victim_sq != 0) {            // hit a piece
       ptype_t typ = ptype_of(np.board[victim_sq]);
       assert((typ != EMPTY) && (typ != INVALID));
-      if (typ == KING) {  // do not expand further: hit a King
+      if (typ == PAWN) {
+        color_t col = color_of(np.board[victim_sq]);
+        int start_index = col * 6;
+        for (int j = 0; j < 6; ++j) {
+          if (np.pawns[start_index + j] == victim_sq)
+            np.pawns[start_index + j] = -1;
+        }
+      } else if (typ == KING) {  // do not expand further: hit a King
         node_count++;
         continue;
       }
