@@ -4,4 +4,198 @@ go depth 7
 move
 go depth 7
 move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
+go depth 7
+move
 quit
