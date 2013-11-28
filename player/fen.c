@@ -387,14 +387,6 @@ int fen_to_pos(position_t *p, char *fen) {
     }
   }
 
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 6; ++j) {
-      printf("%d ", p->pawns[6*i + j]);
-    }
-    printf("\n");
-  }
-  printf("\n");
-
   if (Kings[WHITE] == 0) {
     fen_error(fen, c_count, "No White Kings");
     return 1;
