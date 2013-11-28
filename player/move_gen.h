@@ -60,6 +60,7 @@ typedef int fil_t;
 // -----------------------------------------------------------------------------
 
 #define PIECE_SIZE 5  // Number of bits in (ptype, color, orientation)
+#define PIECE_MASK 31
 
 typedef uint8_t piece_t;
 

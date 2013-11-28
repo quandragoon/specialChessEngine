@@ -110,7 +110,7 @@ uint64_t compute_zob_key(position_t *p) {
   for (fil_t f = 0; f < BOARD_WIDTH; f++) {
     for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
       square_t sq = square_of(f, r);
-      key ^= zob[sq][p->board[sq]];
+      key ^= zob[sq][p->board[sq] & PIECE_MASK];
     }
   }
   if (color_to_move_of(p) == BLACK)
@@ -386,10 +386,10 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
     p->board[from_sq] = to_piece;
 
     // Hash key updates
-    p->key ^= zob[from_sq][from_piece];  // remove from_piece from from_sq
-    p->key ^= zob[to_sq][to_piece];  // remove to_piece from to_sq
-    p->key ^= zob[to_sq][from_piece];  // place from_piece in to_sq
-    p->key ^= zob[from_sq][to_piece];  // place to_piece in from_sq
+    p->key ^= zob[from_sq][from_piece & PIECE_MASK];  // remove from_piece from from_sq
+    p->key ^= zob[to_sq][to_piece & PIECE_MASK];  // remove to_piece from to_sq
+    p->key ^= zob[to_sq][from_piece & PIECE_MASK];  // place from_piece in to_sq
+    p->key ^= zob[from_sq][to_piece & PIECE_MASK];  // place to_piece in from_sq
 
     // Update locations in pawn/king lookup arrays if necessary
     if (ptype_of(from_piece) == KING) {
@@ -408,10 +408,10 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
 
   } else {  // rotation
     // remove from_piece from from_sq in hash
-    p->key ^= zob[from_sq][from_piece];
+    p->key ^= zob[from_sq][from_piece & PIECE_MASK];
     set_ori(&from_piece, rot + ori_of(from_piece));  // rotate from_piece
     p->board[from_sq] = from_piece;  // place rotated piece on board
-    p->key ^= zob[from_sq][from_piece];              // ... and in hash
+    p->key ^= zob[from_sq][from_piece & PIECE_MASK];              // ... and in hash
   }
 
   // Increment ply
@@ -488,7 +488,7 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
 
   } else {  // we definitely hit something with laser
     p->victim = p->board[victim_sq];
-    p->key ^= zob[victim_sq][p->victim];   // remove from board
+    p->key ^= zob[victim_sq][p->victim & PIECE_MASK];   // remove from board
     p->board[victim_sq] = 0;
     p->key ^= zob[victim_sq][0];
 
@@ -546,7 +546,7 @@ static uint64_t perft_search(position_t *p, int depth, int ply) {
         continue;
       }
       np.victim = np.board[victim_sq];
-      np.key ^= zob[victim_sq][np.victim];   // remove from board
+      np.key ^= zob[victim_sq][np.victim & PIECE_MASK];   // remove from board
       np.board[victim_sq] = 0;
       np.key ^= zob[victim_sq][0];
     }
