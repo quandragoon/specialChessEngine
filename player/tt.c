@@ -80,7 +80,6 @@ uint32_t tt_get_num_of_records() {
 }
 
 static inline uint64_t round_up_nearest_pow_of_2(uint64_t arg){
-  arg--;
   arg |= arg >> 1;
   arg |= arg >> 2;
   arg |= arg >> 4;

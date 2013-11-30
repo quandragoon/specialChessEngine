@@ -737,16 +737,6 @@ static score_t scout_search_student(  position_t *p, score_t beta, int depth, in
     move_list[hole] = insert;
   }
 
-  for (int j = num_of_moves - num_no_history_moves; j < num_of_moves; j++) {
-    sortable_move_t insert = move_list[j];
-    int hole = j;
-    while (hole > 0 && insert > move_list[hole-1]) {
-      move_list[hole] = move_list[hole-1];
-      hole--;
-    }
-    move_list[hole] = insert;
-  }
-
   for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
     subpv[0] = 0;
 
