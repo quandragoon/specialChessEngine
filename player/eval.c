@@ -179,6 +179,7 @@ int mobility(position_t *p, color_t color) {
     sq += beam_of(bdir);
     assert(sq < ARR_SIZE && sq >= 0);
     mobility -= neighbor_map[sq] == 1;
+    neighbor_map[sq] &= (-2);
     assert(mobility >= 0);
     switch (ptype_of(p->board[sq])) {
      case EMPTY:  // empty square
