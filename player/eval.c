@@ -389,7 +389,9 @@ score_t eval(position_t *p, bool verbose) {
       fil_t f = fil_of(sq);
       rnk_t r = rnk_of(sq);
 
-      square_to_str(sq, buf);
+      if (verbose) {
+        square_to_str(sq, buf);
+      }
       // MATERIAL heuristic: Bonus for each Pawn
       bonus = PAWN_EV_VALUE;
       if (verbose) {
