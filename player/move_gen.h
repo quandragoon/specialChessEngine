@@ -178,14 +178,6 @@ int ori_of(piece_t x);
 void set_ori(piece_t *x, int ori);
 void init_zob();
 int square_to_str(square_t sq, char *buf);
-int dir_of(int i);
-int beam_of(int direction);
-int reflect_of(int beam_dir, int pawn_ori);
-ptype_t ptype_mv_of(move_t mv);
-square_t from_square(move_t mv);
-square_t to_square(move_t mv);
-rot_t rot_of(move_t mv);
-move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq);
 void move_to_str(move_t mv, char *buf);
 int generate_all(position_t *p, sortable_move_t *sortable_move_list,
                  bool strict);
@@ -243,6 +235,59 @@ static inline ptype_t ptype_of(piece_t x) {
 static inline int index_of(piece_t x) {
   int index =  (int) ((x >> INDEX_SHIFT));
   return index;
+}
+
+static int beam[NUM_ORI] = {1, ARR_WIDTH, -1, -ARR_WIDTH};
+
+static inline int beam_of(int direction) {
+  assert(direction >= 0 && direction < NUM_ORI);
+  return beam[direction];
+}
+
+static int dir[8] = { -ARR_WIDTH - 1, -ARR_WIDTH, -ARR_WIDTH + 1, -1, 1,
+                              ARR_WIDTH - 1, ARR_WIDTH, ARR_WIDTH + 1 };
+
+static inline int dir_of(int i) {
+  assert(i >= 0 && i < 8);
+  return dir[i];
+}
+
+// reflect[beam_dir][pawn_orientation]
+// -1 indicates back of Pawn
+static int reflect[NUM_ORI][NUM_ORI] = {
+//  NW  NE  SE  SW
+  { -1, -1, EE, WW},   // NN
+  { NN, -1, -1, SS},   // EE
+  { WW, EE, -1, -1 },  // SS
+  { -1, NN, SS, -1 }   // WW
+};
+
+static inline int reflect_of(int beam_dir, int pawn_ori) {
+  assert(beam_dir >= 0 && beam_dir < NUM_ORI);
+  assert(pawn_ori >= 0 && pawn_ori < NUM_ORI);
+  return reflect[beam_dir][pawn_ori];
+}
+static inline ptype_t ptype_mv_of(move_t mv) {
+  return (ptype_t) ((mv >> PTYPE_MV_SHIFT) & PTYPE_MV_MASK);
+}
+
+static inline square_t from_square(move_t mv) {
+  return (mv >> FROM_SHIFT) & FROM_MASK;
+}
+
+static inline square_t to_square(move_t mv) {
+  return (mv >> TO_SHIFT) & TO_MASK;
+}
+
+static inline rot_t rot_of(move_t mv) {
+  return (rot_t) ((mv >> ROT_SHIFT) & ROT_MASK);
+}
+
+static inline move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq) {
+  return ((typ & PTYPE_MV_MASK) << PTYPE_MV_SHIFT) |
+         ((rot & ROT_MASK) << ROT_SHIFT) |
+         ((from_sq & FROM_MASK) << FROM_SHIFT) |
+         ((to_sq & TO_MASK) << TO_SHIFT);
 }
 
 #endif  // MOVE_GEN_H

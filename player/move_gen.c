@@ -141,64 +141,6 @@ int square_to_str(square_t sq, char *buf) {
   }
 }
 
-// direction map
-static int dir[8] = { -ARR_WIDTH - 1, -ARR_WIDTH, -ARR_WIDTH + 1, -1, 1,
-                              ARR_WIDTH - 1, ARR_WIDTH, ARR_WIDTH + 1 };
-
-int dir_of(int i) {
-  assert(i >= 0 && i < 8);
-  return dir[i];
-}
-
-
-// directions for laser: NN, EE, SS, WW
-static int beam[NUM_ORI] = {1, ARR_WIDTH, -1, -ARR_WIDTH};
-
-int beam_of(int direction) {
-  assert(direction >= 0 && direction < NUM_ORI);
-  return beam[direction];
-}
-
-// reflect[beam_dir][pawn_orientation]
-// -1 indicates back of Pawn
-int reflect[NUM_ORI][NUM_ORI] = {
-//  NW  NE  SE  SW
-  { -1, -1, EE, WW},   // NN
-  { NN, -1, -1, SS},   // EE
-  { WW, EE, -1, -1 },  // SS
-  { -1, NN, SS, -1 }   // WW
-};
-
-int reflect_of(int beam_dir, int pawn_ori) {
-  assert(beam_dir >= 0 && beam_dir < NUM_ORI);
-  assert(pawn_ori >= 0 && pawn_ori < NUM_ORI);
-  return reflect[beam_dir][pawn_ori];
-}
-
-ptype_t ptype_mv_of(move_t mv) {
-  return (ptype_t) ((mv >> PTYPE_MV_SHIFT) & PTYPE_MV_MASK);
-}
-
-square_t from_square(move_t mv) {
-  return (mv >> FROM_SHIFT) & FROM_MASK;
-}
-
-square_t to_square(move_t mv) {
-  return (mv >> TO_SHIFT) & TO_MASK;
-}
-
-rot_t rot_of(move_t mv) {
-  return (rot_t) ((mv >> ROT_SHIFT) & ROT_MASK);
-}
-
-move_t move_of(ptype_t typ, rot_t rot, square_t from_sq, square_t to_sq) {
-  return ((typ & PTYPE_MV_MASK) << PTYPE_MV_SHIFT) |
-         ((rot & ROT_MASK) << ROT_SHIFT) |
-         ((from_sq & FROM_MASK) << FROM_SHIFT) |
-         ((to_sq & TO_MASK) << TO_SHIFT);
-}
-
-
 // converts a move to string notation for FEN
 void move_to_str(move_t mv, char *buf) {
   square_t f = from_square(mv);  // from-square
