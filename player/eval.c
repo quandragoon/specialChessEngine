@@ -280,7 +280,6 @@ int h_squares_attackable(position_t *p, color_t c) {
 
 score_t eval_reference(position_t *p, bool verbose) {
   // verbose = true: print out components of score
-  printf("here\n");
   ev_score_t score[2] = { 0, 0 };
   //  int corner[2][2] = { {INF, INF}, {INF, INF} };
   ev_score_t bonus;

@@ -543,6 +543,7 @@ static uint64_t perft_search(position_t *p, int depth, int ply) {
       if (typ == PAWN) {
         color_t col = color_of(np.board[victim_sq]);
         int start_index = (col * 6) - 1;
+        assert(victim_sq == np.pawns[start_index + index_of(np.board[victim_sq])]);
         np.pawns[start_index + index_of(np.board[victim_sq])] = -1;
       } else if (typ == KING) {  // do not expand further: hit a King
         node_count++;
