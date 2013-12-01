@@ -494,33 +494,11 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
     p->board[victim_sq] = 0;
     p->key ^= zob[victim_sq][0];
 
-    char buf[MAX_CHARS_IN_MOVE];
-
-    printf("\n\n");
-    for (int i = 0; i < 8; ++i) {
-      for (int j = 0; j < 8; ++j) {
-        square_t sq = square_of(i, j);
-        printf("%d ", index_of(p->board[sq]));
-      }
-      printf("\n");
-    } 
-
     if (ptype_of(p->victim) == PAWN) {
-      printf("PIECE KILLED\n");
-      square_to_str(victim_sq, buf);
-      printf("Piece killed at %s\n", buf);
       color_t col = color_of(p->victim);
-      printf("Color: %s\n", color_to_str(col));
       int start_index = (6 * col) - 1;
-      printf("Index: %d\n", index_of(p->victim));
-      printf("Value of victim_sq: %d\n", victim_sq);
-      printf("BEFORE - Square value in pawns array: %d\n", p->pawns[start_index + index_of(p->victim)]);
-      fil_t fil = fil_of(p->pawns[start_index + index_of(p->victim)]);
-      rnk_t rnk = rnk_of(p->pawns[start_index + index_of(p->victim)]);
-      printf("%d %d\n", fil, rnk);
       assert(victim_sq == p->pawns[start_index + index_of(p->victim)]);
       p->pawns[start_index + index_of(p->victim)] = -1;
-      printf("AFTER - Square value in pawns array: %d\n", p->pawns[start_index + index_of(p->victim)]);
     }
 
     assert(p->key == compute_zob_key(p));
