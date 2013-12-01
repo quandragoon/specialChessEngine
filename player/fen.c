@@ -383,7 +383,7 @@ int fen_to_pos(position_t *p, char *fen) {
         p->kloc[col] = sq;
       } else if (typ == PAWN) {
         p->pawns[(6 * col) + Pawns[col]] = sq;
-        set_ind(x, Pawns[col] + 1);
+        set_ind(x, Pawns[col]);
         Pawns[col]++;
       }
     }
