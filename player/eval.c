@@ -154,13 +154,13 @@ int mobility(position_t *p, color_t color) {
   assert(ptype_of(p->board[king_sq]) == KING);
   assert(color_of(p->board[king_sq]) == color);
 
-  int mobility = 0;
+  int mobility = 1;
   neighbor_map[king_sq] = 1;
   char mask = 1; 
   for (int d = 0; d < 8; ++d) {
     square_t neighbor = king_sq + dir_of(d);
     neighbor_map[neighbor] |= mask;
-    mobility += neighbor_map[neighbor] == 1;
+    mobility += (neighbor_map[neighbor] == 1);
   }
 
   // Fire laser and check if we hit any of the
@@ -173,11 +173,11 @@ int mobility(position_t *p, color_t color) {
   int bdir = ori_of(p->board[sq]);
 
   assert(ptype_of(p->board[sq]) == KING);
-
   while (true) {
     sq += beam_of(bdir);
     assert(sq < ARR_SIZE && sq >= 0);
-    mobility -= neighbor_map[sq] == 1;
+    mobility -= (neighbor_map[sq] == 1);
+    neighbor_map[sq] &= (-2);
     assert(mobility >= 0);
     switch (ptype_of(p->board[sq])) {
      case EMPTY:  // empty square

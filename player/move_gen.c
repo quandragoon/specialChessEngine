@@ -378,10 +378,10 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
   p->last_move = mv;
 
   assert(from_sq < ARR_SIZE && from_sq > 0);
-  assert(p->board[from_sq] < (1 << PIECE_SIZE) &&
+  assert(p->board[from_sq] < (1 << (PIECE_SIZE + 3)) &&
          p->board[from_sq] >= 0);
   assert(to_sq < ARR_SIZE && to_sq > 0);
-  assert(p->board[to_sq] < (1 << PIECE_SIZE) &&
+  assert(p->board[to_sq] < (1 << (PIECE_SIZE + 3)) &&
          p->board[to_sq] >= 0);
 
   p->key ^= zob_color;   // swap color to move

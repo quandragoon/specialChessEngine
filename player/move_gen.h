@@ -123,7 +123,8 @@ typedef enum {
 // moves
 // -----------------------------------------------------------------------------
 
-#define KO (1 << PIECE_SIZE)  // returned by make move in illegal ko situation
+// invalid piece_t value returned by make move in illegal ko situation
+#define KO (INDEX_MASK << INDEX_SHIFT)  
 
 // MOVE_MASK is 20 bits
 #define MOVE_MASK 0xfffff
