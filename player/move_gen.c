@@ -404,6 +404,7 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
       p->kloc[color_of(from_piece)] = to_sq;
     } else if (ptype_of(from_piece) == PAWN) {
       int start_index = 6 * color_of(from_piece);
+      assert(from_sq == p->pawns[start_index + index_of(from_piece)]);
       p->pawns[start_index + index_of(from_piece)] = to_sq;
     }
 
@@ -411,6 +412,7 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
       p->kloc[color_of(to_piece)] = from_sq;
     } else if (ptype_of(to_piece) == PAWN) {
       int start_index = 6 * color_of(to_piece);
+      assert(to_sq == p->pawns[start_index + index_of(to_piece)]);
       p->pawns[start_index + index_of(to_piece)] = from_sq;
     }
 
@@ -503,6 +505,7 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
     if (ptype_of(p->victim) == PAWN) {
       color_t col = color_of(p->victim);
       int start_index = 6 * col;
+      assert(victim_sq == p->pawns[start_index + index_of(p->victim)]);
       p->pawns[start_index + index_of(p->victim)] = -1;
     }
 
@@ -548,6 +551,7 @@ static uint64_t perft_search(position_t *p, int depth, int ply) {
       if (typ == PAWN) {
         color_t col = color_of(np.board[victim_sq]);
         int start_index = col * 6;
+        assert(victim_sq == np.pawns[start_index + index_of(np.board[victim_sq])]);
         np.pawns[start_index + index_of(np.board[victim_sq])] = -1;
       } else if (typ == KING) {  // do not expand further: hit a King
         node_count++;
