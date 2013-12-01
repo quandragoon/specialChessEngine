@@ -10,7 +10,7 @@ else
 endif
 
 ifeq ($(TEST),1)
-	CFLAGS := -Wall -O0 -g -DTEST $(PFLAG) -fcilkplus # -g needed for test framework assertions
+	CFLAGS := -Wall -O0 -g $(PFLAG) -fcilkplus # -g needed for test framework assertions
 else
 	CFLAGS := -Wall -O3 -DNDEBUG $(PFLAG) -fcilkplus
 endif
