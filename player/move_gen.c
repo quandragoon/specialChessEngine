@@ -395,14 +395,16 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
     if (ptype_of(from_piece) == KING) {
       p->kloc[color_of(from_piece)] = to_sq;
     } else if (ptype_of(from_piece) == PAWN) {
-      int start_index = 6 * color_of(from_piece);
+      int start_index = (6 * color_of(from_piece)) - 1;
+      assert(from_sq == p->pawns[start_index + index_of(from_piece)]);
       p->pawns[start_index + index_of(from_piece)] = to_sq;
     }
 
     if (ptype_of(to_piece) == KING) {
       p->kloc[color_of(to_piece)] = from_sq;
     } else if (ptype_of(to_piece) == PAWN) {
-      int start_index = 6 * color_of(to_piece);
+      int start_index = (6 * color_of(to_piece)) - 1;
+      assert(to_sq == p->pawns[start_index + index_of(to_piece)]);
       p->pawns[start_index + index_of(to_piece)] = from_sq;
     }
 
@@ -492,10 +494,29 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
     p->board[victim_sq] = 0;
     p->key ^= zob[victim_sq][0];
 
+    char buf[MAX_CHARS_IN_MOVE];
+
+    /*for (int i = 0; i < 8; ++i) {
+      for (int j = 0; j < 8; ++j) {
+        square_t sq = square_of(i, j);
+        printf("%d ", index_of(p->board[sq]));
+      }
+      printf("\n");
+    } 
+    printf("\n\n");*/
+
     if (ptype_of(p->victim) == PAWN) {
+      // printf("PIECE KILLED\n");
+      square_to_str(victim_sq, buf);
+      // printf("Piece killed at %s\n", buf);
       color_t col = color_of(p->victim);
-      int start_index = 6 * col;
-      p->pawns[start_index + index_of(p->victim)] = -1;
+      assert(victim_sq == p->pawns[(col * 6) + index_of(p->victim) - 1]);
+      // printf("Color: %s\n", color_to_str(col));
+      int start_index = (6 * col) - 1;
+      // printf("Index: %d\n", index_of(p->victim));
+      // printf("AFTER - Square value in pawns array: %d\n", p->pawns[start_index + index_of(p->victim)]);
+      p->pawns[start_index + index_of(p->victim) -1] = -1;
+      // printf("BEFORE - Square value in pawns array: %d\n", p->pawns[start_index + index_of(p->victim)]);
     }
 
     assert(p->key == compute_zob_key(p));
@@ -539,7 +560,7 @@ static uint64_t perft_search(position_t *p, int depth, int ply) {
       assert((typ != EMPTY) && (typ != INVALID));
       if (typ == PAWN) {
         color_t col = color_of(np.board[victim_sq]);
-        int start_index = col * 6;
+        int start_index = (col * 6) - 1;
         np.pawns[start_index + index_of(np.board[victim_sq])] = -1;
       } else if (typ == KING) {  // do not expand further: hit a King
         node_count++;

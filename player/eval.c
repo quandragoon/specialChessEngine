@@ -278,8 +278,7 @@ int h_squares_attackable(position_t *p, color_t c) {
   }
 }
 
-// Static evaluation.  Returns score
-score_t eval(position_t *p, bool verbose) {
+score_t eval_reference(position_t *p, bool verbose) {
   // verbose = true: print out components of score
   ev_score_t score[2] = { 0, 0 };
   //  int corner[2][2] = { {INF, INF}, {INF, INF} };
@@ -291,9 +290,9 @@ score_t eval(position_t *p, bool verbose) {
       square_t sq = square_of(f, r);
       piece_t x = p->board[sq];
       color_t c = color_of(x);
-      if (verbose) {
+      // if (verbose) {
         square_to_str(sq, buf);
-      }
+      // }
 
       switch (ptype_of(x)) {
         case EMPTY:
@@ -301,16 +300,16 @@ score_t eval(position_t *p, bool verbose) {
         case PAWN:
           // MATERIAL heuristic: Bonus for each Pawn
           bonus = PAWN_EV_VALUE;
-          if (verbose) {
-            printf("MATERIAL bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
-          }
+          // if (verbose) {
+            printf("REFERENCE- MATERIAL bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
+          // }
           score[c] += bonus;
 
           // PBETWEEN heuristic
           bonus = pbetween(p, f, r);
-          if (verbose) {
-            printf("PBETWEEN bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
-          }
+          // if (verbose) {
+            printf("REFERENCE- PBETWEEN bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
+          // }
           score[c] += bonus;
           break;
 
@@ -371,6 +370,102 @@ score_t eval(position_t *p, bool verbose) {
   if (color_to_move_of(p) == BLACK) {
     tot = -tot;
   }
+  return tot / EV_SCORE_RATIO;
+}
 
+// Static evaluation.  Returns score
+score_t eval(position_t *p, bool verbose) {
+  // verbose = true: print out components of score
+  ev_score_t score[2] = { 0, 0 };
+  //  int corner[2][2] = { {INF, INF}, {INF, INF} };
+  ev_score_t bonus;
+  char buf[MAX_CHARS_IN_MOVE];
+
+  for (color_t c = 0; c < 2; c++) {
+    for (int i = 0; i < 6; ++i) {
+      int index = (c * 6) + i;
+      square_t sq = p->pawns[index];
+      if (sq < 0) continue;
+      fil_t f = fil_of(sq);
+      rnk_t r = rnk_of(sq);
+
+      square_to_str(sq, buf);
+      // MATERIAL heuristic: Bonus for each Pawn
+      bonus = PAWN_EV_VALUE;
+      // if (verbose) {
+        printf("ACTUAL- MATERIAL bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
+      // }
+      score[c] += bonus;
+
+      // PBETWEEN heuristic
+      bonus = pbetween(p, f, r);
+      // if (verbose) {
+        printf("ACTUAL- PBETWEEN bonus %d for %s Pawn on %s\n", bonus, color_to_str(c), buf);
+      // }
+      score[c] += bonus;
+    }
+    square_t king_sq = p->kloc[c];
+    fil_t king_f = fil_of(king_sq);
+    rnk_t king_r = rnk_of(king_sq);
+
+    // KFACE heuristic
+    bonus = kface(p, king_f, king_r);
+    if (verbose) {
+      printf("KFACE bonus %d for %s King on %s\n", bonus,
+             color_to_str(c), buf);
+    }
+    score[c] += bonus;
+
+    // KAGGRESSIVE heuristic
+    bonus = kaggressive(p, king_f, king_r);
+    if (verbose) {
+      printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
+    }
+    score[c] += bonus;
+  }
+
+  ev_score_t w_hattackable = HATTACK * h_squares_attackable(p, WHITE);
+  score[WHITE] += w_hattackable;
+  if (verbose) {
+    printf("HATTACK bonus %d for White\n", w_hattackable);
+  }
+  ev_score_t b_hattackable = HATTACK * h_squares_attackable(p, BLACK);
+  score[BLACK] += b_hattackable;
+  if (verbose) {
+    printf("HATTACK bonus %d for Black\n", b_hattackable);
+  }
+
+  int w_mobility = MOBILITY * mobility(p, WHITE);
+  score[WHITE] += w_mobility;
+  if (verbose) {
+    printf("MOBILITY bonus %d for White\n", w_mobility);
+  }
+  int b_mobility = MOBILITY * mobility(p, BLACK);
+  score[BLACK] += b_mobility;
+  if (verbose) {
+    printf("MOBILITY bonus %d for Black\n", b_mobility);
+  }
+
+  // score from WHITE point of view
+  ev_score_t tot = score[WHITE] - score[BLACK];
+
+  if (RANDOMIZE) {
+    ev_score_t  z = rand() % (RANDOMIZE*2+1);
+    tot = tot + z - RANDOMIZE;
+  }
+
+  if (color_to_move_of(p) == BLACK) {
+    tot = -tot;
+  }
+  ev_score_t final = tot / EV_SCORE_RATIO;
+  ev_score_t other = eval_reference(p, verbose);
+  printf("%d %d\n", final, other);
+#if TEST == 1
+  if (final != other) {
+    printf("%d %d\n", final, other);
+    printf("ASSERTION FAILED\n");
+  }
+  assert(final == other);
+#endif
   return tot / EV_SCORE_RATIO;
 }
