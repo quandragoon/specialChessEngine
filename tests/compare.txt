@@ -12,5 +12,5 @@ invoke = ../player/leiserchess
 fis = 60 0.2
 
 player = reference
-invoke = ../player/binaries/build-1385832307
+invoke = ../player/binaries/build-1385935229
 fis = 60 0.2
