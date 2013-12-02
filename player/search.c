@@ -659,6 +659,7 @@ static score_t scout_search_student(  position_t *p, score_t beta, int depth, in
   move_t killer_b = killer[KMT(ply,1)];
 
   // sort special moves to the front
+  
   for (int mv_index = 0; mv_index < num_of_moves; mv_index++) {
     move_t mv = get_move(move_list[mv_index]);
     if (mv == hash_table_move) {
@@ -677,36 +678,29 @@ static score_t scout_search_student(  position_t *p, score_t beta, int depth, in
       int      ot  = ORI_MASK & (ori_of(p->board[fs]) + ro);
       square_t ts  = to_square(mv);
       int move_history = best_move_history[BMH(fctm,pce,ts,ot)];
-      if (move_history == 0) {
-        num_no_history_moves++;
-      }
+      num_no_history_moves += !move_history;
       set_sort_key(&move_list[mv_index], move_history);
     }
   }
 
   int start_index = 0;
   int end_index = num_of_moves - 1;
-  bool move_right = true;
-  while (start_index < end_index) {
-    if (move_right) {
-      if (sort_key(move_list[start_index]) > 0)
-        start_index++;
-      else
-        move_right = false;
+  while (true) {
+    while (sort_key(move_list[start_index]) > 0)
+      start_index++;
+    while (sort_key(move_list[end_index]) == 0)
+      end_index--;
+    if (start_index < end_index) {
+      sortable_move_t tmp_element = move_list[start_index];
+      move_list[start_index] = move_list[end_index];
+      move_list[end_index] = tmp_element;
+      start_index++;
+      end_index--;
     } else {
-      if (sort_key(move_list[end_index]) == 0)
-        end_index--;
-      else {
-        sortable_move_t tmp_element = move_list[start_index];
-        move_list[start_index] = move_list[end_index];
-        move_list[end_index] = tmp_element;
-
-        move_right = true;
-        end_index--;
-        start_index++;
-      }
+      break;
     }
   }
+
 
 #if TEST
   for (int j = num_of_moves - num_no_history_moves; j < num_of_moves; j++)
@@ -725,29 +719,17 @@ static score_t scout_search_student(  position_t *p, score_t beta, int depth, in
   pthread_mutex_init(&local_mutex, NULL);
 #endif
 
-  // on the fly sorting
-  // TODO: Move back to the for loop for parallel case
-  for (int j = 0; j < num_of_moves - num_no_history_moves; j++) {
-    sortable_move_t insert = move_list[j];
-    int hole = j;
-    while (hole > 0 && insert > move_list[hole-1]) {
-      move_list[hole] = move_list[hole-1];
-      hole--;
-    }
-    move_list[hole] = insert;
-  }
-
-  for (int j = num_of_moves - num_no_history_moves; j < num_of_moves; j++) {
-    sortable_move_t insert = move_list[j];
-    int hole = j;
-    while (hole > 0 && insert > move_list[hole-1]) {
-      move_list[hole] = move_list[hole-1];
-      hole--;
-    }
-    move_list[hole] = insert;
-  }
-
   for (mv_index = 0; mv_index < num_of_moves; mv_index++) {
+    int max = mv_index;
+    for (int idx = mv_index + 1; idx < num_of_moves - num_no_history_moves; idx++) {
+      if (move_list[idx] > move_list[max]) {
+        max = idx; 
+      }
+    }
+    sortable_move_t tmp = move_list[mv_index];
+    move_list[mv_index] = move_list[max];
+    move_list[max] = tmp;
+
     subpv[0] = 0;
 
     move_t mv = get_move(move_list[mv_index]);
