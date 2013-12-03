@@ -383,9 +383,9 @@ square_t fire(position_t *p) {
   int bdir = ori_of(p->board[sq]);
 
   if (bdir%2==1) {
-    if (p->rnk_count[rnk_of(sq)]<2) return 0;
+    if (p->rnk_count[rnk_of(sq)] < 2) return 0;
   } else {
-    if (p->fil_count[fil_of(sq)<2]) return 0;
+    if (p->fil_count[fil_of(sq)] < 2) return 0;
   }
   assert(ptype_of(p->board[ p->kloc[fctm] ]) == KING);
 
@@ -405,9 +405,9 @@ square_t fire(position_t *p) {
       // If there is only one piece in the beam path,
       // we can short circuit fire here
       if (bdir%2==1) {
-        if (p->rnk_count[rnk_of(sq)]<2) return 0;
+        if (p->rnk_count[rnk_of(sq)] < 2) return 0;
       } else {
-        if (p->fil_count[fil_of(sq)<2]) return 0;
+        if (p->fil_count[fil_of(sq)] < 2) return 0;
       }
       break;
      case KING:  // King

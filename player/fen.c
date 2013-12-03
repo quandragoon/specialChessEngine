@@ -369,6 +369,7 @@ int fen_to_pos(position_t *p, char *fen) {
   }
 
   // King and pawn check
+  
   for (int i = 0; i < 8; i++) {
     p->rnk_count[i] = 0;
     p->fil_count[i] = 0;
@@ -397,7 +398,6 @@ int fen_to_pos(position_t *p, char *fen) {
     }
   }
 
-  
   if (Kings[WHITE] == 0) {
     fen_error(fen, c_count, "No White Kings");
     return 1;
