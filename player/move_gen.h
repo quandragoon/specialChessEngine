@@ -162,6 +162,8 @@ typedef struct position {
   piece_t      victim;           // piece destroyed by shooter
   square_t     kloc[2];          // location of kings
   square_t     pawns[12];        // location of pawns
+  uint8_t      rnk_count[8];
+  uint8_t      fil_count[8];
 } position_t;
 
 // -----------------------------------------------------------------------------

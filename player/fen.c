@@ -369,6 +369,11 @@ int fen_to_pos(position_t *p, char *fen) {
   }
 
   // King and pawn check
+  
+  for (int i = 0; i < 8; i++) {
+    p->rnk_count[i] = 0;
+    p->fil_count[i] = 0;
+  }
 
   int Kings[2] = {0, 0};
   int Pawns[2] = {0, 0};
@@ -381,8 +386,12 @@ int fen_to_pos(position_t *p, char *fen) {
       if (typ == KING) {
         Kings[col]++;
         p->kloc[col] = sq;
+        p->rnk_count[rnk_of(sq)]++;
+        p->fil_count[fil_of(sq)]++;
       } else if (typ == PAWN) {
         p->pawns[(6 * col) + Pawns[col]] = sq;
+        p->rnk_count[rnk_of(sq)]++;
+        p->fil_count[fil_of(sq)]++;
         set_ind(x, Pawns[col]);
         Pawns[col]++;
       }
