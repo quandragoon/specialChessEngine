@@ -115,13 +115,12 @@ static uint64_t   zob_color;
 // Zobrist
 uint64_t compute_zob_key(position_t *p) {
   uint64_t key = 0;
-  square_t sq = (ARR_WIDTH-1)*FIL_ORIGIN + RNK_ORIGIN;
+  square_t sq = ARR_WIDTH*(FIL_ORIGIN-1) + RNK_ORIGIN;
   for (fil_t f = 0; f < BOARD_WIDTH; f++) {
     sq += ARR_WIDTH;
     for (rnk_t r = 0; r < BOARD_WIDTH; r++) {
-      ++sq;
       // square_t sq = square_of(f, r);
-      key ^= zob[sq][p->board[sq] & PIECE_MASK];
+      key ^= zob[sq + r][p->board[sq + r] & PIECE_MASK];
     }
   }
   if (color_to_move_of(p) == BLACK)

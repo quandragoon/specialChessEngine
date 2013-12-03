@@ -70,7 +70,7 @@ static inline ev_score_t pbetween(position_t *p, fil_t f, rnk_t r) {
 
 
 // KFACE and KAGGRESSIVE heuristic
-ev_score_t kface_kaggressive (position_t *p, square_t sq, rnk_t r, fil_t f, color_t c) {
+static inline ev_score_t kface_kaggressive (position_t *p, square_t sq, rnk_t r, fil_t f, color_t c) {
   // rnk_t r = rnk_of(sq);
   // fil_t f = fil_of(sq);
   // color_t c = color_of(p->board[sq]);
@@ -170,7 +170,7 @@ ev_score_t kface(position_t *p, square_t sq) {
 }
 
 // KAGGRESSIVE heuristic: bonus for King with more space to back
-ev_score_t kaggressive(position_t *p, square_t sq) {
+static inline ev_score_t kaggressive(position_t *p, square_t sq) {
   // square_t sq = square_of(f, r);
   piece_t x = p->board[sq];
   color_t c = color_of(x);
