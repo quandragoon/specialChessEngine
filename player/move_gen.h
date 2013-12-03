@@ -234,6 +234,7 @@ static inline ptype_t ptype_of(piece_t x) {
 static inline int index_of(piece_t x) {
   int index =  (int) ((x >> INDEX_SHIFT));
   return index;
+}
 
 static inline color_t opp_color(color_t c){
     return !c;

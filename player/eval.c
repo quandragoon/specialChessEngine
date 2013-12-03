@@ -69,11 +69,75 @@ static inline ev_score_t pbetween(position_t *p, fil_t f, rnk_t r) {
 }
 
 
+// KFACE and KAGGRESSIVE heuristic
+ev_score_t kface_kaggressive (position_t *p, square_t sq, rnk_t r, fil_t f, color_t c) {
+  // rnk_t r = rnk_of(sq);
+  // fil_t f = fil_of(sq);
+  // color_t c = color_of(p->board[sq]);
+  square_t opp_sq = p->kloc[opp_color(c)];
+  int delta_fil = fil_of(opp_sq) - f;
+  int delta_rnk = rnk_of(opp_sq) - r;
+  int bonus1, bonus2;
+
+  switch (ori_of(p->board[sq])) {
+   case NN:
+    bonus1 = delta_rnk;
+    break;
+
+   case EE:
+    bonus1 = delta_fil;
+    break;
+
+   case SS:
+    bonus1 = -delta_rnk;
+    break;
+
+   case WW:
+    bonus1 = -delta_fil;
+    break;
+
+   default:
+    bonus1 = 0;
+    printf("Illegal King orientation\n");
+    assert(false);
+  }
+  
+  bonus2 = 0;
+
+  if (delta_fil >= 0 && delta_rnk >= 0) {
+    bonus2 = (f + 1) * (r + 1);
+  } else if (delta_fil <= 0 && delta_rnk >= 0) {
+    bonus2 = (BOARD_WIDTH - f) * (r + 1);
+  } else if (delta_fil <= 0 && delta_rnk <= 0) {
+    bonus2 = (BOARD_WIDTH - f) * (BOARD_WIDTH - r);
+  } else if (delta_fil >= 0 && delta_rnk <= 0) {
+    bonus2 = (f + 1) * (BOARD_WIDTH - r);
+  }
+
+  /*
+  if (delta_fil >= 0)
+    if(delta_rnk >= 0)
+      bonus2 = (f + 1) * (r + 1);
+    else
+      bonus2 = (f + 1) * (BOARD_WIDTH - r);
+  else
+    if(delta_rnk >= 0)
+      bonus2 = (BOARD_WIDTH - f) * (r + 1);
+    else
+      bonus2 = (BOARD_WIDTH - f) * (BOARD_WIDTH - r);
+  */
+
+  return (bonus1 * KFACE) / (abs(delta_rnk) + abs(delta_fil)) + (KAGGRESSIVE * bonus2) / (BOARD_WIDTH * BOARD_WIDTH);
+}
+
+
 // KFACE heuristic: bonus (or penalty) for King facing toward the other King
-ev_score_t kface(position_t *p, fil_t f, rnk_t r) {
-  square_t sq = square_of(f, r);
+ev_score_t kface(position_t *p, square_t sq) {
+  // square_t sq = square_of(f, r);
   piece_t x = p->board[sq];
   color_t c = color_of(x);
+  rnk_t r = rnk_of(sq);
+  fil_t f = fil_of(sq);
   square_t opp_sq = p->kloc[opp_color(c)];
   int delta_fil = fil_of(opp_sq) - f;
   int delta_rnk = rnk_of(opp_sq) - r;
@@ -106,11 +170,13 @@ ev_score_t kface(position_t *p, fil_t f, rnk_t r) {
 }
 
 // KAGGRESSIVE heuristic: bonus for King with more space to back
-ev_score_t kaggressive(position_t *p, fil_t f, rnk_t r) {
-  square_t sq = square_of(f, r);
+ev_score_t kaggressive(position_t *p, square_t sq) {
+  // square_t sq = square_of(f, r);
   piece_t x = p->board[sq];
   color_t c = color_of(x);
-  assert(ptype_of(x) == KING);
+  // assert(ptype_of(x) == KING);
+  rnk_t r = rnk_of(sq);
+  fil_t f = fil_of(sq);
 
   square_t opp_sq = p->kloc[opp_color(c)];
   fil_t of = fil_of(opp_sq);
@@ -388,8 +454,9 @@ score_t eval(position_t *p, bool verbose) {
     fil_t king_f = fil_of(king_sq);
     rnk_t king_r = rnk_of(king_sq);
 
+    /*
     // KFACE heuristic
-    bonus = kface(p, king_f, king_r);
+    bonus = kface(p, king_sq);
     if (verbose) {
       printf("KFACE bonus %d for %s King on %s\n", bonus,
              color_to_str(c), buf);
@@ -397,13 +464,16 @@ score_t eval(position_t *p, bool verbose) {
     score[c] += bonus;
 
     // KAGGRESSIVE heuristic
-    bonus = kaggressive(p, king_f, king_r);
+    bonus = kaggressive(p, king_sq);
     if (verbose) {
       printf("KAGGRESSIVE bonus %d for %s King on %s\n", bonus, color_to_str(c), buf);
     }
     score[c] += bonus;
-  }
+    */
 
+    score[c] += kface_kaggressive(p, king_sq, king_r, king_f, c);
+  }
+    
   int whsa, bhsa;
   int wm, bm;
 
