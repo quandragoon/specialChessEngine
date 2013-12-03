@@ -359,6 +359,12 @@ void low_level_make_move(position_t *old, position_t *p, move_t mv) {
       int start_index = 6 * color_of(to_piece);
       assert(to_sq == p->pawns[start_index + index_of(to_piece)]);
       p->pawns[start_index + index_of(to_piece)] = from_sq;
+    } else {
+      // This suggests that the square is empty.
+      p->fil_count[fil_of(from_sq)]--;
+      p->rnk_count[rnk_of(from_sq)]--;
+      p->fil_count[fil_of(to_sq)]++;
+      p->rnk_count[rnk_of(to_sq)]++;
     }
 
   } else {  // rotation
@@ -387,6 +393,11 @@ square_t fire(position_t *p) {
   square_t sq = p->kloc[fctm];
   int bdir = ori_of(p->board[sq]);
 
+  if (bdir%2==1) {
+    if (p->rnk_count[rnk_of(sq)] < 2) return 0;
+  } else {
+    if (p->fil_count[fil_of(sq)] < 2) return 0;
+  }
   assert(ptype_of(p->board[ p->kloc[fctm] ]) == KING);
 
   while (true) {
@@ -400,6 +411,14 @@ square_t fire(position_t *p) {
       bdir = reflect_of(bdir, ori_of(p->board[sq]));
       if (bdir < 0) {  // Hit back of Pawn
         return sq;
+      }
+
+      // If there is only one piece in the beam path,
+      // we can short circuit fire here
+      if (bdir%2==1) {
+        if (p->rnk_count[rnk_of(sq)] < 2) return 0;
+      } else {
+        if (p->fil_count[fil_of(sq)] < 2) return 0;
       }
       break;
      case KING:  // King
@@ -453,6 +472,10 @@ piece_t make_move(position_t *old, position_t *p, move_t mv) {
       assert(victim_sq == p->pawns[start_index + index_of(p->victim)]);
       p->pawns[start_index + index_of(p->victim)] = -1;
     }
+
+    // Victim impacts counts of row and column
+    p->fil_count[fil_of(victim_sq)]--;
+    p->rnk_count[rnk_of(victim_sq)]--;
 
     assert(p->key == compute_zob_key(p));
 
