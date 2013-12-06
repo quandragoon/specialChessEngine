@@ -426,9 +426,9 @@ score_t eval(position_t *p, bool verbose) {
   char buf[MAX_CHARS_IN_MOVE];
 
   for (color_t c = 0; c < 2; c++) {
+    int index = (c * 6);
     for (int i = 0; i < 6; ++i) {
-      int index = (c * 6) + i;
-      square_t sq = p->pawns[index];
+      square_t sq = p->pawns[index + i];
       if (sq < 0) continue;
       fil_t f = fil_of(sq);
       rnk_t r = rnk_of(sq);
