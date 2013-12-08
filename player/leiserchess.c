@@ -39,6 +39,9 @@
 #include "tt.h"
 #include "util.h"
 
+#include <pthread.h>
+#include <unistd.h>
+
 #include <cilk/cilk.h>
 #include <cilk/reducer.h>
 #include "speculative_add.h"
@@ -173,69 +176,82 @@ piece_t make_from_string(position_t *old, position_t *p,
   return (mv == 0) ? -1 : make_move(old, p, mv);
 }
 
-static char theMove[MAX_CHARS_IN_MOVE];
+typedef enum {
+  NONWHITESPACE_STARTS,  // next nonwhitespace starts token
+  WHITESPACE_ENDS,       // next whitespace ends token
+  QUOTE_ENDS             // next double-quote ends token
+} parse_state_t;
+
 
 // -----------------------------------------------------------------------------
 // UCI search (top level scout search call)
 // -----------------------------------------------------------------------------
 
-void  UciBeginSearch(position_t *p, int depth, double tme) {
+static move_t bestMoveSoFar;
+static char theMove[MAX_CHARS_IN_MOVE];
+
+static pthread_mutex_t entry_mutex;
+static Abort glob_abort;
+static Speculative_add node_count_parallel;
+static uint64_t node_count_serial;
+
+typedef struct{
+  position_t* p;
+  int depth;
+  double tme;
+} entry_point_args;
+
+void * entry_point(void *arg) {
   move_t subpv[MAX_PLY_IN_SEARCH];
+
+  entry_point_args* real_arg = (entry_point_args*)arg;
+  int depth = real_arg->depth;
+  position_t* p = real_arg->p;
+  double tme = real_arg->tme;
+
 #if !TEST
   double et = 0.0;
 #endif
-  char bms[MAX_CHARS_IN_MOVE];
 
   // start time of search
 #if !TEST
   init_abort_timer(tme);
 #endif
+
   init_best_move_history();
-
-  uint64_t  node_count = 0;
-
   tt_age_hashtable();
+
 #if !TEST
   init_tics();
 #endif
 
-#if PARALLEL
-  Abort glob_abort;
-  abort_constructor(&glob_abort, NULL); 
-  Speculative_add node_count_parallel = (Speculative_add) CILK_C_INIT_REDUCER(Speculative_reducer, 
-                                        speculative_add_reduce, 
-                                        speculative_add_identity,
-                                        speculative_add_destroy, 
-                                        (Speculative_reducer) { .value = 0, .last_value = 0, 
-                                                                .abort_flag = false, .reset_flag = false, 
-                                                                .deterministic = false, .real_total = 0 });
-  CILK_C_REGISTER_REDUCER(node_count_parallel);
-#else
-  Abort glob_abort;
-  Speculative_add node_count_parallel;
-#endif
-
   for (int d = 1; d <= depth; d++) { // Iterative deepening
+
 #if !TEST
     reset_abort();
 #endif
-    searchRoot(p, -INF, INF, d, 0, subpv, &node_count, &node_count_parallel, OUT, &glob_abort);
+
+    searchRoot(p, -INF, INF, d, 0, subpv, &node_count_serial, &node_count_parallel, OUT, &glob_abort);
+
 #if !TEST
     et = elapsed_time();
 #endif
 
-    move_to_str(subpv[0], bms);
-    strcpy(theMove, bms);
-
 #if !TEST
 #if PARALLEL
-    if (!is_aborted(&glob_abort)) {
-      // print something?
-      // do something if we are running out of time?
+    // If we haven't aborted yet, store the best move we found.  Or, if we did 
+    // abort and haven't finished searching a single level, just take whatever 
+    // score we have for the principal variation node
+    if (!is_aborted(&glob_abort) || d == 1) {
+      bestMoveSoFar = subpv[0];
     } else {
+      // we will use the bestMoveSoFar from the last level of iterative 
+      // deepening
       break;
     }
 #else
+    bestMoveSoFar = subpv[0];
+
     if (!should_abort()) {
       // print something?
     } else {
@@ -250,20 +266,61 @@ void  UciBeginSearch(position_t *p, int depth, double tme) {
 #endif
   }
 
-#if PARALLEL
-  CILK_C_UNREGISTER_REDUCER(node_count_parallel);
-#endif
+  // This unlock will allow the main thread lock/unlock in UCIBeginSearch to 
+  // proceed
+  pthread_mutex_unlock(&entry_mutex);
 
-  fprintf(OUT, "bestmove %s\n", bms);
-
-  return;
+  return NULL;
 }
 
-typedef enum {
-    NONWHITESPACE_STARTS,  // next nonwhitespace starts token
-    WHITESPACE_ENDS,       // next whitespace ends token
-    QUOTE_ENDS             // next double-quote ends token
-} parse_state_t;
+void UciBeginSearch(position_t *p, int depth, double tme) {
+  pthread_mutex_lock(&entry_mutex); // setup for the barrier
+
+  entry_point_args args;
+  args.depth = depth;
+  args.p = p;
+  args.tme = tme;
+
+#if PARALLEL
+  abort_constructor(&glob_abort, NULL); 
+  node_count_parallel = (Speculative_add) CILK_C_INIT_REDUCER(Speculative_reducer, 
+                        speculative_add_reduce, 
+                        speculative_add_identity,
+                        speculative_add_destroy, 
+                        (Speculative_reducer) { .value = 0, .last_value = 0, 
+                                                .abort_flag = false, .reset_flag = false, 
+                                                .deterministic = false, .real_total = 0 });
+  CILK_C_REGISTER_REDUCER(node_count_parallel);
+#else
+  node_count_serial = 0;
+#endif
+
+#if PARALLEL
+  pthread_t play_thread;
+  pthread_create(&play_thread, NULL, &entry_point, &args);
+
+  // If we aren't searching to a fixed depth, terminate after a time threshold 
+  // has passed
+  if (depth == INF_DEPTH) {
+    usleep(tme*100);
+    do_abort(&glob_abort);
+  }
+
+  // these two lines implement a barrier (see mutex_unlock in UCIBeginSearch)
+  pthread_mutex_lock(&entry_mutex);
+  pthread_mutex_unlock(&entry_mutex);
+
+  CILK_C_UNREGISTER_REDUCER(node_count_parallel);
+#else
+  entry_point(&args);
+#endif
+
+  char bms[MAX_CHARS_IN_MOVE];
+  move_to_str(bestMoveSoFar, bms);
+  strcpy(theMove, bms);
+  fprintf(OUT, "bestmove %s\n", bms);
+  return;
+}
 
 // -----------------------------------------------------------------------------
 // argparse help
