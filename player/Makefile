@@ -4,7 +4,7 @@ SRC := util.c tt.c fen.c move_gen.c move_gen_reference.c search.c eval.c abort.c
 OBJ := $(addsuffix .o, $(basename $(SRC)))
 
 ifeq ($(PARALLEL),1)
-	PFLAG := -DPARALLEL # -g needed for test framework assertions
+	PFLAG := -DPARALLEL -D_BSD_SOURCE # -g needed for test framework assertions
 else
 	PFLAG := 
 endif
@@ -15,7 +15,7 @@ else
 	CFLAGS := -Wall -O3 -DNDEBUG $(PFLAG) -fcilkplus
 endif
 
-LDFLAGS= -Wall -lrt -lm -lcilkrts -ldl
+LDFLAGS= -Wall -lrt -lm -lcilkrts -ldl -lpthread
 
 %.o : %.c
 	$(CXX) -std=c99 -c $(CFLAGS) $(LDFLAGS) $< -o $@
