@@ -81,19 +81,23 @@ static inline ev_score_t kface_kaggressive (position_t *p, square_t sq, rnk_t r,
 
   switch (ori_of(p->board[sq])) {
    case NN:
-    bonus1 = delta_rnk;
+    // bonus1 = delta_rnk;
+    bonus1 = delta_rnk - abs(delta_fil);
     break;
 
    case EE:
-    bonus1 = delta_fil;
+    // bonus1 = delta_fil;
+    bonus1 = delta_fil - abs(delta_rnk);
     break;
 
    case SS:
-    bonus1 = -delta_rnk;
+    // bonus1 = -delta_rnk;
+    bonus1 = -delta_rnk - abs(delta_fil);
     break;
 
    case WW:
-    bonus1 = -delta_fil;
+    // bonus1 = -delta_fil;
+    bonus1 = -delta_fil - abs(delta_rnk);
     break;
 
    default:

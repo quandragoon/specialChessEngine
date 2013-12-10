@@ -188,8 +188,9 @@ int generate_all(position_t *p, sortable_move_t *sortable_move_list,
   color_t ctm = color_to_move_of(p);
   int move_count = 0;
 
+  int ind = 6*ctm;
   for (int i = 0; i < 6; ++i) {
-    square_t  sq = p->pawns[(6 * ctm) + i];
+    square_t sq = p->pawns[ind + i];
     if (sq < 0)
       continue;
 
